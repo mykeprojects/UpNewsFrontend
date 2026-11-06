@@ -1,33 +1,58 @@
 ﻿import { DrumArt } from '@/components/illustrations/DrumArt';
+import { StoryArt } from '@/components/illustrations/StoryArt';
 import { Icon } from '@/common/atoms/Icon';
-import { news } from '@/common/constants';
 import { MiniStory } from '@/common/molecules/MiniStory';
-import { Footer } from '@/layout/Footer';
-import type { Page } from '@/models';
+import { useNewsDetail, useNewsList } from '@/hooks';
 
-export function ArticlePage() {
+export interface ArticleProps {
+  /** Noticia a mostrar; si es null se muestra la más reciente. */
+  newsId: string | null;
+  onOpenNews: (id: string) => void;
+}
+
+export function ArticlePage({ newsId, onOpenNews }: ArticleProps) {
+  const { data: item, loading, error } = useNewsDetail(newsId);
+  const related = useNewsList({ limit: 4 });
+  const others = (related.data?.items ?? []).filter((n) => n.id !== item?.id).slice(0, 3);
+
   return (
     <main className="shell article-layout">
       <article className="article">
-        <span className="eyebrow dark">Historias · 10 oct</span>
-        <h1>El grupo de música prepara su primera muestra para las familias</h1>
-        <p className="lead">Con alegría y mucha práctica, el grupo de música de ASISCO UP se prepara para compartir lo aprendido con sus familias.</p>
-        <div className="article-actions">
-          <button className="button secondary">
-            <Icon name="volume" size={16} /> Escuchar noticia
-          </button>
-          <button className="plain-button">Lectura fácil</button>
-        </div>
-        <DrumArt />
-        <p>Cada sábado, el salón de música se llena de ritmos, instrumentos y sonrisas. Durante las últimas semanas el grupo ha preparado una muestra sencilla para compartir con las personas que han acompañado su proceso.</p>
-        <p>La actividad hace parte de un proceso en el que cada participante reconoce sus capacidades, practica la escucha y aprende a trabajar con otros. La presentación será un espacio cercano, pensado para celebrar el esfuerzo de todo el grupo.</p>
-        <h2>Una muestra construida entre todos</h2>
-        <p>Las familias podrán acompañar el encuentro y conocer de primera mano lo que sucede en el taller. Próximamente publicaremos la fecha y las recomendaciones para asistir.</p>
-        <div className="article-tags">
-          <span>Música</span>
-          <span>Familias</span>
-          <span>Historias</span>
-        </div>
+        {error && <p className="news-status error">{error}</p>}
+        {!error && loading && !item && <p className="news-status">Cargando noticia…</p>}
+        {!error && !loading && !item && <p className="news-status">Aún no hay noticias publicadas.</p>}
+        {item && (
+          <>
+            <span className="eyebrow dark">
+              {item.category}
+              {item.date && ` · ${item.date}`}
+            </span>
+            <h1>{item.title}</h1>
+            {item.excerpt !== item.body && <p className="lead">{item.excerpt}</p>}
+            <div className="article-actions">
+              <button className="button secondary">
+                <Icon name="volume" size={16} /> Escuchar noticia
+              </button>
+              <button className="plain-button">Lectura fácil</button>
+            </div>
+            {item.imageUrl ? (
+              <img className="article-photo" src={item.imageUrl} alt={item.title} />
+            ) : item.art === 'screen' ? (
+              <DrumArt />
+            ) : (
+              <StoryArt type={item.art} />
+            )}
+            {item.body
+              .split(/\n{2,}/)
+              .filter(Boolean)
+              .map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            <div className="article-tags">
+              <span>{item.category}</span>
+            </div>
+          </>
+        )}
       </article>
       <aside className="article-aside">
         <div className="aside-card orange-card">
@@ -42,22 +67,19 @@ export function ArticlePage() {
             <Icon name="send" size={15} /> Ir a Telegram
           </a>
         </div>
-        <div className="aside-card">
-          <strong>También te puede interesar</strong>
-          {news.slice(0, 2).map((item) => (
-            <MiniStory key={item.title} item={item} />
-          ))}
-        </div>
+        {others.length > 0 && (
+          <div className="aside-card">
+            <strong>También te puede interesar</strong>
+            {others.map((other) => (
+              <MiniStory key={other.id} item={other} onClick={() => onOpenNews(other.id)} />
+            ))}
+          </div>
+        )}
       </aside>
     </main>
   );
 }
 
-export function Article() {
-  return (
-    <>
-      <ArticlePage />
-      <Footer onNavigate={(p: Page) => {}} />
-    </>
-  );
+export function Article(props: ArticleProps) {
+  return <ArticlePage {...props} />;
 }

@@ -3,8 +3,6 @@ import { DrumArt } from '@/components/illustrations/DrumArt';
 import { Icon } from '@/common/atoms/Icon';
 import { events } from '@/common/constants';
 import { EventRow } from '@/common/molecules/EventRow';
-import { Footer } from '@/layout/Footer';
-import type { Page } from '@/models';
 
 function AgendaPage() {
   const [selected, setSelected] = useState(1);
@@ -70,11 +68,7 @@ function AgendaPage() {
   );
 }
 
+/** El Footer lo pone App una sola vez (antes salía duplicado). */
 export function Agenda() {
-  return (
-    <>
-      <AgendaPage />
-      <Footer onNavigate={(p: Page) => {}} />
-    </>
-  );
+  return <AgendaPage />;
 }

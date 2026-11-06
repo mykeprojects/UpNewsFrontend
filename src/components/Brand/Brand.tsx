@@ -1,4 +1,4 @@
-﻿import asiscoLogo from '@/assets/images/imgdownloader-1a6f7e48.png';
+import asiscoLogo from '@/assets/images/logo-asisco.png';
 
 export interface BrandProps {
   light?: boolean;

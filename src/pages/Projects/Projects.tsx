@@ -1,6 +1,4 @@
 ﻿import { Icon } from '@/common/atoms/Icon';
-import { Footer } from '@/layout/Footer';
-import type { Page } from '@/models';
 
 function ProjectsPage() {
   const projects = [
@@ -30,11 +28,7 @@ function ProjectsPage() {
   );
 }
 
+/** El Footer lo pone App una sola vez (antes salía duplicado). */
 export function Projects() {
-  return (
-    <>
-      <ProjectsPage />
-      <Footer onNavigate={(p: Page) => {}} />
-    </>
-  );
+  return <ProjectsPage />;
 }

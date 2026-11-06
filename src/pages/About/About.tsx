@@ -1,6 +1,4 @@
 ﻿import { StoryArt } from '@/components/illustrations/StoryArt';
-import { Footer } from '@/layout/Footer';
-import type { Page } from '@/models';
 
 function AboutPage() {
   return (
@@ -18,11 +16,7 @@ function AboutPage() {
   );
 }
 
+/** El Footer lo pone App una sola vez (antes salía duplicado). */
 export function About() {
-  return (
-    <>
-      <AboutPage />
-      <Footer onNavigate={(p: Page) => {}} />
-    </>
-  );
+  return <AboutPage />;
 }
