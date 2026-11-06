@@ -13,12 +13,20 @@ import { authService } from '@/services';
 
 export default function App() {
   const [page, setPage] = useState<Page>('inicio');
+  const [newsId, setNewsId] = useState<string | null>(null);
   const [authUser, setAuthUser] = useState<AuthUser | null>(() => {
     return authService.getCurrentSession().user;
   });
 
   const navigate = (next: Page) => {
+    if (next === 'noticia') setNewsId(null); // "Noticias" en el menú abre la más reciente
     setPage(next);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openNews = (id: string) => {
+    setNewsId(id);
+    setPage('noticia');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -64,30 +72,13 @@ export default function App() {
         user={authUser}
         onLogout={handleLogout}
       />
-      {page === 'inicio' && <Home onNavigate={navigate} />}
-      {page === 'noticia' && (
-        <>
-          <Article />
-          <Footer onNavigate={navigate} />
-        </>
-      )}
-      {page === 'agenda' && (
-        <>
-          <Agenda />
-          <Footer onNavigate={navigate} />
-        </>
-      )}
-      {page === 'proyectos' && (
-        <>
-          <Projects />
-          <Footer onNavigate={navigate} />
-        </>
-      )}
-      {page === 'nosotros' && (
-        <>
-          <About />
-          <Footer onNavigate={navigate} />
-        </>
+      {page === 'inicio' && <Home onNavigate={navigate} onOpenNews={openNews} />}
+      {page === 'noticia' && <Article newsId={newsId} onOpenNews={openNews} />}
+      {page === 'agenda' && <Agenda />}
+      {page === 'proyectos' && <Projects />}
+      {page === 'nosotros' && <About />}
+      {['noticia', 'agenda', 'proyectos', 'nosotros'].includes(page) && (
+        <Footer onNavigate={navigate} />
       )}
       {page === 'publicar' &&
         (authUser ? (

@@ -322,3 +322,8 @@ footer { background: var(--green-dark); color: white; }
   .hero-buttons { flex-direction: column; }
   .publisher-head .button.secondary { display: none; }
 }
+
+/* Estados de carga de noticias (conexión con el backend) */
+.news-status { padding: 18px 0; color: #5f6b6a; font-size: 15px; }
+.news-status.error { color: #b3261e; }
+.button:disabled { opacity: .55; cursor: not-allowed; }

@@ -4,8 +4,11 @@ import { clearAuthSessionCookies, getAuthTokenFromCookie } from '@/utils/cookies
 export const AUTH_API_BASE_URL =
   import.meta.env.VITE_AUTH_API_URL || 'https://proyecto-asiscoup-g1.onrender.com';
 
-export const NEWS_API_BASE_URL =
-  import.meta.env.VITE_NEWS_API_URL || 'http://localhost:3000/api';
+export const NEWS_API_BASE_URL = (
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_NEWS_API_URL ||
+  'http://localhost:3000'
+).replace(/\/$/, '');
 
 function attachAuthInterceptors(instance: AxiosInstance): AxiosInstance {
   instance.interceptors.request.use(

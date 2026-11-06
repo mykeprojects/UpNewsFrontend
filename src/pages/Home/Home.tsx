@@ -1,50 +1,53 @@
-﻿import { DrumArt } from '@/components/illustrations/DrumArt';
+﻿import { useState } from 'react';
+import { DrumArt } from '@/components/illustrations/DrumArt';
 import { Icon } from '@/common/atoms/Icon';
 import { SectionTitle } from '@/common/molecules/SectionTitle';
 import { EventRow } from '@/common/molecules/EventRow';
 import { NewsCard } from '@/common/molecules/NewsCard';
+import { events } from '@/common/constants';
+import { useNewsCategories, useNewsList } from '@/hooks';
 import { Footer } from '@/layout/Footer';
+import type { Page } from '@/models';
 
-export function Home({ onNavigate }: { onNavigate: (page: any) => void }) {
-  const events = [
-    { day: '24', month: 'OCT', title: 'Feria de panadería', time: '10:00 a. m.', place: 'Sede de la fundación' },
-    { day: '14', month: 'NOV', title: 'Muestra de música para las familias', time: '3:00 p. m.', place: 'Auditorio principal' },
-    { day: '5', month: 'DIC', title: 'Novena con padrinos y familias', time: '4:00 p. m.', place: 'Casa ASISCO UP' },
-  ];
-  const news = [
-    {
-      category: 'Talleres',
-      title: 'Taller: los jóvenes hornean sus primeras recetas',
-      excerpt: 'Una jornada para aprender, compartir y fortalecer la autonomía.',
-      art: 'screen',
-      tone: 'orange',
-    },
-    {
-      category: 'La Fundación',
-      title: 'Abrimos inscripciones para el taller de panadería',
-      excerpt: 'Conoce cómo participar en nuestros próximos espacios de formación.',
-      art: 'bread',
-      tone: 'cream',
-    },
-    {
-      category: 'Comunidad',
-      title: 'Cada corazón cuenta una historia',
-      excerpt: 'Celebramos el acompañamiento de las familias de nuestra comunidad.',
-      art: 'heart',
-      tone: 'green',
-    },
-  ];
+export interface HomeProps {
+  onNavigate: (page: Page) => void;
+  onOpenNews: (id: string) => void;
+}
+
+const TODAS = 'Todas';
+
+export function Home({ onNavigate, onOpenNews }: HomeProps) {
+  const [filter, setFilter] = useState(TODAS);
+  const latest = useNewsList({ limit: 1 });
+  const list = useNewsList({ limit: 6, category: filter === TODAS ? undefined : filter });
+  const categories = useNewsCategories();
+
+  const hero = latest.data?.items[0];
+  const filters = [TODAS, ...(categories.data ?? [])];
 
   return (
     <>
       <main>
         <section className="hero shell">
           <div className="hero-copy">
-            <span className="eyebrow">Historias · 10 oct</span>
-            <h1>El grupo de música prepara su primera muestra para las familias</h1>
-            <p>Una historia sobre aprendizaje, confianza y el poder de crear juntos en nuestra fundación.</p>
+            {hero ? (
+              <>
+                <span className="eyebrow">
+                  {hero.category}
+                  {hero.date && ` · ${hero.date}`}
+                </span>
+                <h1>{hero.title}</h1>
+                <p>{hero.excerpt}</p>
+              </>
+            ) : (
+              <>
+                <span className="eyebrow">UpNews</span>
+                <h1>Las historias de la Fundación ASISCO UP</h1>
+                <p>{latest.loading ? 'Cargando la noticia más reciente…' : 'Muy pronto publicaremos nuestras primeras noticias.'}</p>
+              </>
+            )}
             <div className="hero-buttons">
-              <button className="button orange" onClick={() => onNavigate('noticia')}>
+              <button className="button orange" disabled={!hero} onClick={() => hero && onOpenNews(hero.id)}>
                 Leer noticia <Icon name="arrow" size={16} />
               </button>
               <button className="button ghost-light">
@@ -58,7 +61,7 @@ export function Home({ onNavigate }: { onNavigate: (page: any) => void }) {
         </section>
 
         <section className="shell section">
-          <SectionTitle title="Próximos eventos" action="Ver agenda" />
+          <SectionTitle title="Próximos eventos" action="Ver agenda" onAction={() => onNavigate('agenda')} />
           <div className="events-preview">
             {events.map((event, index) => (
               <EventRow key={event.title} event={event} featured={index === 1} />
@@ -67,17 +70,20 @@ export function Home({ onNavigate }: { onNavigate: (page: any) => void }) {
         </section>
 
         <section className="shell section news-section">
-          <SectionTitle title="Últimas noticias" action="Ver todas" />
+          <SectionTitle title="Últimas noticias" action="Ver todas" onAction={() => setFilter(TODAS)} />
           <div className="filters" aria-label="Filtrar noticias">
-            {['Todas', 'Talleres', 'Eventos', 'La Fundación'].map((filter, index) => (
-              <button className={index === 0 ? 'active' : ''} key={filter}>
-                {filter}
+            {filters.map((name) => (
+              <button className={name === filter ? 'active' : ''} key={name} onClick={() => setFilter(name)}>
+                {name}
               </button>
             ))}
           </div>
+          {list.error && <p className="news-status error">{list.error}</p>}
+          {!list.error && list.loading && !list.data && <p className="news-status">Cargando noticias…</p>}
+          {!list.error && list.data?.items.length === 0 && <p className="news-status">Aún no hay noticias en esta categoría.</p>}
           <div className="news-grid">
-            {news.map((item) => (
-              <NewsCard key={item.title} item={item} onNavigate={onNavigate} />
+            {list.data?.items.map((item) => (
+              <NewsCard key={item.id} item={item} onOpen={onOpenNews} />
             ))}
           </div>
         </section>
