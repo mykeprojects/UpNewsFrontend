@@ -3,7 +3,7 @@ import type { PaginaDto, PublicacionDto } from './news.dto';
 
 /**
  * Traduce la respuesta del backend (español, campos de API) al modelo que usan los componentes.
- * Las ilustraciones y colores se eligen a partir de la etiqueta, para no depender de imágenes todavía.
+ * Si la noticia tiene foto se muestra; si no, se elige una ilustración y un color a partir de la etiqueta.
  */
 const VISUAL_POR_CATEGORIA: Record<string, { art: NewsArt; tone: NewsTone }> = {
   talleres: { art: 'screen', tone: 'orange' },
@@ -42,6 +42,7 @@ export function toNews(dto: PublicacionDto): News {
     title: dto.titulo,
     excerpt: extracto(dto),
     body: dto.cuerpo,
+    imageUrl: dto.imagenUrl ?? null,
     date: fechaCorta(dto.publicadaEn),
     publishedAt: dto.publicadaEn,
     ...visualPara(category),

@@ -11,7 +11,11 @@ export function NewsCard({ item, onOpen }: NewsCardProps) {
   return (
     <article className="news-card" onClick={() => onOpen(item.id)}>
       <div className={`news-art ${item.tone}`}>
-        <StoryArt type={item.art} />
+        {item.imageUrl ? (
+          <img className="news-photo" src={item.imageUrl} alt="" loading="lazy" />
+        ) : (
+          <StoryArt type={item.art} />
+        )}
       </div>
       <div className="news-card-body">
         <span>

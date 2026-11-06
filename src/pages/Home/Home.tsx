@@ -56,7 +56,7 @@ export function Home({ onNavigate, onOpenNews }: HomeProps) {
             </div>
           </div>
           <div className="hero-art">
-            <DrumArt />
+            {hero?.imageUrl ? <img className="hero-photo" src={hero.imageUrl} alt={hero.title} /> : <DrumArt />}
           </div>
         </section>
 

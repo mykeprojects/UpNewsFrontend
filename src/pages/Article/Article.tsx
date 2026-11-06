@@ -35,7 +35,13 @@ export function ArticlePage({ newsId, onOpenNews }: ArticleProps) {
               </button>
               <button className="plain-button">Lectura fácil</button>
             </div>
-            {item.art === 'screen' ? <DrumArt /> : <StoryArt type={item.art} />}
+            {item.imageUrl ? (
+              <img className="article-photo" src={item.imageUrl} alt={item.title} />
+            ) : item.art === 'screen' ? (
+              <DrumArt />
+            ) : (
+              <StoryArt type={item.art} />
+            )}
             {item.body
               .split(/\n{2,}/)
               .filter(Boolean)

@@ -8,6 +8,7 @@ export interface PublicacionDto {
   resumen: string | null;
   cuerpo: string;
   etiqueta: string | null;
+  imagenUrl: string | null;
   publicadaEn: string | null;
 }
 

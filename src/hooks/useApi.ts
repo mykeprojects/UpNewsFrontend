@@ -24,7 +24,8 @@ export function useApi<T>(fetcher: (signal: AbortSignal) => Promise<T>, deps: un
     fetcher(controller.signal)
       .then((data) => setState({ data, loading: false, error: null }))
       .catch((error: Error) => {
-        if (error.name !== 'AbortError') setState({ data: null, loading: false, error: error.message });
+        // Si se canceló (cambió la página o llegó un aviso nuevo), se ignora el error.
+        if (!controller.signal.aborted) setState({ data: null, loading: false, error: error.message });
       });
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps

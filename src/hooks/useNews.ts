@@ -1,3 +1,4 @@
+import { contactService } from '@/services/contact';
 import { newsService } from '@/services/news';
 import { useApi } from './useApi';
 
@@ -15,4 +16,9 @@ export function useNewsDetail(id: string | null) {
 
 export function useNewsCategories() {
   return useApi((signal) => newsService.categories(signal), []);
+}
+
+/** Información de contacto pública de la fundación (pie de página). */
+export function useContactInfo() {
+  return useApi((signal) => contactService.list(signal), []);
 }
