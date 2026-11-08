@@ -57,12 +57,6 @@ export function LoginPage({ onBack, onLoginSuccess }: LoginPageProps) {
           <p>
             Este espacio es exclusivo para Administradores y Talleristas autorizados de la Fundación ASISCO UP.
           </p>
-          <div className="login-note">
-            <Icon name="check" size={16} />
-            <span>
-              Los talleristas pueden redactar y enviar noticias a revisión; los administradores aprueban y activan su publicación.
-            </span>
-          </div>
         </div>
 
         <div className="login-card">
@@ -107,7 +101,7 @@ export function LoginPage({ onBack, onLoginSuccess }: LoginPageProps) {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   disabled={loading}
                 />{' '}
-                Recordar este equipo (guardar sesión en cookies)
+                Recordar este equipo
               </label>
             </div>
             <button className="button primary full" type="submit" disabled={loading}>
@@ -131,9 +125,6 @@ export function LoginPage({ onBack, onLoginSuccess }: LoginPageProps) {
           <button className="back-link" type="button" onClick={onBack}>
             ← Volver a UpNews
           </button>
-          <small>
-            Acceso restringido únicamente a roles ADMINISTRADOR y TALLERISTA. La sesión se almacena de forma segura en cookies.
-          </small>
         </div>
       </section>
     </main>

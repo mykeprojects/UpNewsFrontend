@@ -99,13 +99,13 @@ export function Home({ onNavigate, onOpenNews }: HomeProps) {
         <section className="shell support-grid">
           <div className="donation-band" id="donar">
             <div className="round-icon">
-              <Icon name="heart" size={24} />
+              <Icon name="heart" size={28} />
             </div>
-            <div>
+            <div className="donation-copy">
               <span>¿Quieres apoyar nuestra labor?</span>
-              <p>Tu aporte abre nuevas oportunidades.</p>
+              <p>Tu aporte abre nuevas oportunidades para nuestra comunidad.</p>
             </div>
-            <button className="button dark">Donar con Asisco Pay</button>
+            <button className="button dark donate-cta">Donar con Asisco Pay</button>
           </div>
         </section>
       </main>

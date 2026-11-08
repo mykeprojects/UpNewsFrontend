@@ -20,7 +20,7 @@ export function Header({ page, onNavigate, user, onLogout }: HeaderProps) {
   return (
     <header className="site-header">
       <div className="header-inner">
-        <div onClick={() => go('inicio')}>
+        <div className="brand-wrap" onClick={() => go('inicio')}>
           <Brand />
         </div>
         <nav className={open ? 'main-nav open' : 'main-nav'} aria-label="Navegación principal">

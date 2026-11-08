@@ -23,7 +23,7 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
   const [proposito, setProposito] = useState('');
   const [etiqueta, setEtiqueta] = useState<string>(DEFAULT_TAGS[0]);
   const [estado, setEstado] = useState<NewsStatus>(isAdmin ? 'PUBLICADO' : 'EN_REVISION');
-  const [estaActivo, setEstaActivo] = useState<boolean>(false);
+  const [estaActivo, setEstaActivo] = useState<boolean>(isAdmin);
   const [imagenUrl, setImagenUrl] = useState<string | null>(null);
   const [subiendoImagen, setSubiendoImagen] = useState(false);
 
@@ -64,7 +64,7 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
     setCuerpo('');
     setProposito('');
     setImagenUrl(null);
-    setEstaActivo(false);
+    setEstaActivo(isAdmin);
   };
 
   const handleImagen = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -87,10 +87,10 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
 
     const payload = buildPayload(overrideStatus);
 
-    if (!payload.titulo || !payload.resumen || !payload.cuerpo || !payload.proposito || !payload.etiqueta) {
+    if (!payload.titulo || !payload.cuerpo) {
       setFeedback({
         type: 'error',
-        message: 'Por favor completa todos los campos obligatorios: título, resumen, cuerpo, propósito y etiqueta.',
+        message: 'Por favor completa los campos obligatorios: título y cuerpo de la noticia.',
       });
       return;
     }
@@ -198,7 +198,7 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
       <form id="create-news-form" className="publisher-grid" onSubmit={handleFormSubmit}>
         <section className="editor-card">
           <label>
-            Título (`titulo`) *
+            Título *
             <input
               type="text"
               name="titulo"
@@ -210,19 +210,18 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
           </label>
 
           <label>
-            Propósito (`proposito`) *
+            Propósito (opcional)
             <input
               type="text"
               name="proposito"
               value={proposito}
               onChange={(e) => setProposito(e.target.value)}
               placeholder="Ej: Informar e invitar a la comunidad de familias al cierre de talleres artísticos"
-              required
             />
           </label>
 
           <div className="field-group">
-            <span>Etiqueta (`etiqueta`) *</span>
+            <span>Etiqueta (opcional)</span>
             <div className="chip-row">
               {DEFAULT_TAGS.map((tag) => (
                 <button
@@ -242,23 +241,21 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
               value={etiqueta}
               onChange={(e) => setEtiqueta(e.target.value)}
               placeholder="Selecciona una etiqueta o escribe una personalizada"
-              required
             />
           </div>
 
           <label>
-            Resumen (`resumen`) *
+            Resumen (opcional)
             <textarea
               name="resumen"
               value={resumen}
               onChange={(e) => setResumen(e.target.value)}
               placeholder="Breve descripción sobre la noticia que se mostrará en las tarjetas y vista previa..."
-              required
             />
           </label>
 
           <label>
-            Cuerpo de la noticia (`cuerpo`) *
+            Cuerpo de la noticia *
             <textarea
               name="cuerpo"
               className="article-input"
@@ -295,21 +292,21 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
             <h2>Estado y Aprobación</h2>
 
             <label>
-              Estado (`estado`)
+              Estado
               <select
                 name="estado"
                 className="status-select"
                 value={estado}
                 onChange={(e) => setEstado(e.target.value as NewsStatus)}
               >
-                <option value="BORRADOR">BORRADOR</option>
-                <option value="EN_REVISION">EN_REVISION (Pendiente de aprobación)</option>
-                {isAdmin && <option value="PUBLICADO">PUBLICADO (Aprobado por Admin)</option>}
+                <option value="BORRADOR">Borrador</option>
+                <option value="EN_REVISION">En revisión (Pendiente de aprobación)</option>
+                {isAdmin && <option value="PUBLICADO">Publicado (Aprobado por Admin)</option>}
               </select>
             </label>
 
             <div className="field-group">
-              <span>Activación y Notificación (`esta_activo`)</span>
+              <span>Activación y Notificación</span>
               {isAdmin ? (
                 <label className="check-row admin-toggle">
                   <input
@@ -326,9 +323,9 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
                 <div className="locked-field-notice">
                   <Icon name="lock" size={14} />
                   <div>
-                    <strong>Campo exclusivo de Administrador (`esta_activo: false`)</strong>
+                    <strong>Campo exclusivo de Administrador</strong>
                     <p>
-                      Como Tallerista, puedes crear la noticia y enviarla a revisión. Un Administrador deberá aprobarla y activar <code>esta_activo</code> para que se publique y notifique al portal.
+                      Como Tallerista, puedes crear la noticia y enviarla a revisión. Un Administrador deberá aprobarla y activarla para que se publique y notifique al portal.
                     </p>
                   </div>
                 </div>
