@@ -20,7 +20,7 @@ export function Header({ page, onNavigate, user, onLogout }: HeaderProps) {
   return (
     <header className="site-header">
       <div className="header-inner">
-        <div onClick={() => go('inicio')}>
+        <div className="brand-wrap" onClick={() => go('inicio')}>
           <Brand />
         </div>
         <nav className={open ? 'main-nav open' : 'main-nav'} aria-label="Navegación principal">
@@ -59,9 +59,6 @@ export function Header({ page, onNavigate, user, onLogout }: HeaderProps) {
             <Icon name="search" size={16} />
             <span>Buscar noticias</span>
           </button>
-          <a className="button secondary desktop-action" href="https://t.me/" target="_blank" rel="noreferrer">
-            <Icon name="send" size={15} /> Telegram
-          </a>
           {user ? (
             <>
               <button

@@ -36,9 +36,6 @@ export function Footer({ onNavigate }: FooterProps) {
         <div>
           <strong>Participa</strong>
           <button onClick={() => onNavigate('agenda')}>Agenda</button>
-          <a href="https://t.me/" target="_blank" rel="noreferrer">
-            Canal de Telegram
-          </a>
           <button onClick={() => onNavigate('publicar')}>Acceso fundación</button>
         </div>
         {contactos && contactos.length > 0 && (
