@@ -1,4 +1,4 @@
-﻿import { Brand } from '@/components/Brand';
+import { Brand } from '@/components/Brand';
 import type { Page } from '@/models';
 
 export interface FooterProps {
@@ -22,9 +22,6 @@ export function Footer({ onNavigate }: FooterProps) {
         <div>
           <strong>Participa</strong>
           <button onClick={() => onNavigate('agenda')}>Agenda</button>
-          <a href="https://t.me/" target="_blank" rel="noreferrer">
-            Canal de Telegram
-          </a>
           <button onClick={() => onNavigate('publicar')}>Acceso fundación</button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { DrumArt } from '@/components/illustrations/DrumArt';
 import { Icon } from '@/common/atoms/Icon';
 import { SectionTitle } from '@/common/molecules/SectionTitle';
@@ -89,27 +89,15 @@ export function Home({ onNavigate, onOpenNews }: HomeProps) {
         </section>
 
         <section className="shell support-grid">
-          <div className="telegram-band">
-            <div className="round-icon">
-              <Icon name="send" size={24} />
-            </div>
-            <div>
-              <span>Las noticias de la fundación, en tu Telegram</span>
-              <p>Recibe nuestras historias y eventos.</p>
-            </div>
-            <a className="button light" href="https://t.me/" target="_blank" rel="noreferrer">
-              Unirme al canal
-            </a>
-          </div>
           <div className="donation-band" id="donar">
             <div className="round-icon">
-              <Icon name="heart" size={24} />
+              <Icon name="heart" size={28} />
             </div>
-            <div>
+            <div className="donation-copy">
               <span>¿Quieres apoyar nuestra labor?</span>
-              <p>Tu aporte abre nuevas oportunidades.</p>
+              <p>Tu aporte abre nuevas oportunidades para nuestra comunidad.</p>
             </div>
-            <button className="button dark">Donar con Asisco Pay</button>
+            <button className="button dark donate-cta">Donar con Asisco Pay</button>
           </div>
         </section>
       </main>

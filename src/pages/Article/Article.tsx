@@ -1,4 +1,4 @@
-﻿import { DrumArt } from '@/components/illustrations/DrumArt';
+import { DrumArt } from '@/components/illustrations/DrumArt';
 import { StoryArt } from '@/components/illustrations/StoryArt';
 import { Icon } from '@/common/atoms/Icon';
 import { MiniStory } from '@/common/molecules/MiniStory';
@@ -53,13 +53,6 @@ export function ArticlePage({ newsId, onOpenNews }: ArticleProps) {
           <strong>¿Quieres apoyar nuestros talleres?</strong>
           <p>Tu donación ayuda a mantener espacios de aprendizaje y encuentro.</p>
           <button className="button light">Donar con Asisco Pay</button>
-        </div>
-        <div className="aside-card teal-card">
-          <strong>¿Quieres recibir esta noticia?</strong>
-          <p>Únete al canal oficial de la fundación.</p>
-          <a className="button light" href="https://t.me/" target="_blank" rel="noreferrer">
-            <Icon name="send" size={15} /> Ir a Telegram
-          </a>
         </div>
         {others.length > 0 && (
           <div className="aside-card">

@@ -22,8 +22,8 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
   const [cuerpo, setCuerpo] = useState('');
   const [proposito, setProposito] = useState('');
   const [etiqueta, setEtiqueta] = useState<string>(DEFAULT_TAGS[0]);
-  const [estado, setEstado] = useState<NewsStatus>(isAdmin ? 'PUBLICADO' : 'EN_REVISION');
-  const [estaActivo, setEstaActivo] = useState<boolean>(false);
+  const [estado, setEstado] = useState<NewsStatus>(isAdmin ? 'PUBLICADO' : 'PENDIENTE_APROBACION');
+  const [estaActivo, setEstaActivo] = useState<boolean>(isAdmin);
 
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
@@ -34,26 +34,30 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
 
   const buildPayload = (overrideStatus?: NewsStatus): CreateNewsPayload => {
     const finalStatus = overrideStatus ?? estado;
+    const trimmedResumen = resumen.trim();
+    const trimmedProposito = proposito.trim();
+    const trimmedEtiqueta = etiqueta.trim();
+
     return {
       titulo: titulo.trim(),
-      resumen: resumen.trim(),
       cuerpo: cuerpo.trim(),
-      proposito: proposito.trim(),
-      etiqueta: etiqueta.trim(),
-      estado: !isAdmin && finalStatus === 'PUBLICADO' ? 'EN_REVISION' : finalStatus,
-      esta_activo: isAdmin ? estaActivo : false,
+      ...(trimmedResumen ? { resumen: trimmedResumen } : {}),
+      ...(trimmedProposito ? { proposito: trimmedProposito } : {}),
+      ...(trimmedEtiqueta ? { etiqueta: trimmedEtiqueta } : {}),
+      estado: finalStatus === 'BORRADOR' ? 'BORRADOR' : 'PENDIENTE_APROBACION',
     };
   };
 
   const submitNews = async (overrideStatus?: NewsStatus) => {
     setFeedback(null);
 
+    const finalStatus = overrideStatus ?? estado;
     const payload = buildPayload(overrideStatus);
 
-    if (!payload.titulo || !payload.resumen || !payload.cuerpo || !payload.proposito || !payload.etiqueta) {
+    if (!payload.titulo || !payload.cuerpo) {
       setFeedback({
         type: 'error',
-        message: 'Por favor completa todos los campos obligatorios: título, resumen, cuerpo, propósito y etiqueta.',
+        message: 'Por favor completa los campos obligatorios: título y cuerpo de la noticia.',
       });
       return;
     }
@@ -67,16 +71,21 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
       return;
     }
 
+    const shouldApproveAndActivate =
+      isAdmin && finalStatus !== 'BORRADOR' && (finalStatus === 'PUBLICADO' || estaActivo);
+
     setSubmitting(true);
     try {
-      await newsService.createNews(payload, currentRole);
+      await newsService.createNews(payload, currentRole, {
+        approveAndActivate: shouldApproveAndActivate,
+      });
       setFeedback({
         type: 'success',
         message: isAdmin
-          ? payload.esta_activo
-            ? 'Noticia creada y activada correctamente. Se enviará la notificación para renderizar en el portal.'
+          ? shouldApproveAndActivate
+            ? 'Noticia creada, aprobada y activada correctamente. Ya está publicada en el portal.'
             : 'Noticia guardada correctamente.'
-          : 'Noticia enviada a revisión. Un administrador deberá aprobarla y activarla para su publicación.',
+          : 'Noticia enviada a revisión (PENDIENTE_APROBACION). Un administrador deberá aprobarla y activarla para su publicación.',
         payload,
       });
     } catch (error) {
@@ -84,7 +93,7 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
         error instanceof Error ? error.message : 'No se pudo conectar con el backend de noticias.';
       setFeedback({
         type: 'warning',
-        message: `Petición preparada con Bearer Token desde cookies (Interceptor Axios). Respuesta del servidor de noticias: ${errorMsg}`,
+        message: `No se pudo completar el envío al servidor de noticias: ${errorMsg}`,
         payload,
       });
     } finally {
@@ -120,8 +129,8 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
           <span className="status">
             {estado === 'BORRADOR'
               ? 'Borrador'
-              : estado === 'EN_REVISION'
-                ? 'En revisión'
+              : estado === 'PENDIENTE_APROBACION'
+                ? 'Pendiente de aprobación'
                 : 'Publicado'}
           </span>
           <button
@@ -171,7 +180,7 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
       <form id="create-news-form" className="publisher-grid" onSubmit={handleFormSubmit}>
         <section className="editor-card">
           <label>
-            Título (`titulo`) *
+            Título *
             <input
               type="text"
               name="titulo"
@@ -183,19 +192,18 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
           </label>
 
           <label>
-            Propósito (`proposito`) *
+            Propósito (opcional)
             <input
               type="text"
               name="proposito"
               value={proposito}
               onChange={(e) => setProposito(e.target.value)}
               placeholder="Ej: Informar e invitar a la comunidad de familias al cierre de talleres artísticos"
-              required
             />
           </label>
 
           <div className="field-group">
-            <span>Etiqueta (`etiqueta`) *</span>
+            <span>Etiqueta (opcional)</span>
             <div className="chip-row">
               {DEFAULT_TAGS.map((tag) => (
                 <button
@@ -215,23 +223,21 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
               value={etiqueta}
               onChange={(e) => setEtiqueta(e.target.value)}
               placeholder="Selecciona una etiqueta o escribe una personalizada"
-              required
             />
           </div>
 
           <label>
-            Resumen (`resumen`) *
+            Resumen (opcional)
             <textarea
               name="resumen"
               value={resumen}
               onChange={(e) => setResumen(e.target.value)}
               placeholder="Breve descripción sobre la noticia que se mostrará en las tarjetas y vista previa..."
-              required
             />
           </label>
 
           <label>
-            Cuerpo de la noticia (`cuerpo`) *
+            Cuerpo de la noticia *
             <textarea
               name="cuerpo"
               className="article-input"
@@ -262,21 +268,21 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
             <h2>Estado y Aprobación</h2>
 
             <label>
-              Estado (`estado`)
+              Estado
               <select
                 name="estado"
                 className="status-select"
                 value={estado}
                 onChange={(e) => setEstado(e.target.value as NewsStatus)}
               >
-                <option value="BORRADOR">BORRADOR</option>
-                <option value="EN_REVISION">EN_REVISION (Pendiente de aprobación)</option>
-                {isAdmin && <option value="PUBLICADO">PUBLICADO (Aprobado por Admin)</option>}
+                <option value="BORRADOR">Borrador</option>
+                <option value="PENDIENTE_APROBACION">Pendiente de aprobación</option>
+                {isAdmin && <option value="PUBLICADO">Publicado</option>}
               </select>
             </label>
 
             <div className="field-group">
-              <span>Activación y Notificación (`esta_activo`)</span>
+              <span>Activación y Notificación</span>
               {isAdmin ? (
                 <label className="check-row admin-toggle">
                   <input
@@ -286,16 +292,16 @@ export function PublishPage({ user, onLogout }: PublishPageProps) {
                     onChange={(e) => setEstaActivo(e.target.checked)}
                   />
                   <span>
-                    Activar noticia (`esta_activo: {estaActivo ? 'true' : 'false'}`) — envía notificación al frontend para renderizar.
+                    Activar noticia — envía notificación al portal para publicar.
                   </span>
                 </label>
               ) : (
                 <div className="locked-field-notice">
                   <Icon name="lock" size={14} />
                   <div>
-                    <strong>Campo exclusivo de Administrador (`esta_activo: false`)</strong>
+                    <strong>Campo exclusivo de Administrador</strong>
                     <p>
-                      Como Tallerista, puedes crear la noticia y enviarla a revisión. Un Administrador deberá aprobarla y activar <code>esta_activo</code> para que se publique y notifique al portal.
+                      Como Tallerista, puedes crear la noticia y enviarla a revisión. Un Administrador deberá aprobarla y activarla para que se publique y notifique al portal.
                     </p>
                   </div>
                 </div>

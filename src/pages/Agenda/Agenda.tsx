@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { DrumArt } from '@/components/illustrations/DrumArt';
 import { Icon } from '@/common/atoms/Icon';
 import { events } from '@/common/constants';
@@ -54,9 +54,6 @@ function AgendaPage() {
             <div className="share-buttons">
               <button className="pill">
                 <Icon name="send" size={14} /> WhatsApp
-              </button>
-              <button className="pill">
-                <Icon name="send" size={14} /> Telegram
               </button>
             </div>
             <button className="button primary full">Confirmar inscripción</button>

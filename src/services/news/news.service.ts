@@ -30,29 +30,50 @@ export const newsService = {
   },
 
   /**
-   * Envía la creación de la noticia al backend de UP News utilizando newsApiClient.
-   * El interceptor de Axios adjunta automáticamente `Authorization: Bearer <token>`
-   * leyendo el token almacenado en las cookies.
+   * 1. Crea la noticia en POST /api/gestion/publicaciones (con estado BORRADOR o PENDIENTE_APROBACION).
+   * 2. Si el usuario es ADMINISTRADOR y solicita publicarla/activarla inmediatamente,
+   *    llama a POST /api/gestion/publicaciones/:id/aprobar-y-activar.
    */
   async createNews(
     payload: CreateNewsPayload,
     userRole: UserRole,
+    options?: { approveAndActivate?: boolean },
   ): Promise<CreateNewsResponse> {
+    const isDraft = payload.estado === 'BORRADOR';
+    const creationEstado = isDraft ? 'BORRADOR' : 'PENDIENTE_APROBACION';
+
+    const shouldApproveAndActivate =
+      userRole === 'ADMINISTRADOR' &&
+      !isDraft &&
+      Boolean(options?.approveAndActivate ?? (payload.estado === 'PUBLICADO' || payload.esta_activo));
+
     const sanitizedPayload: CreateNewsPayload = {
-      ...payload,
-      esta_activo: userRole === 'ADMINISTRADOR' ? Boolean(payload.esta_activo) : false,
-      estado:
-        userRole === 'TALLERISTA' && payload.estado === 'PUBLICADO'
-          ? 'EN_REVISION'
-          : payload.estado,
+      titulo: payload.titulo.trim(),
+      cuerpo: payload.cuerpo.trim(),
+      ...(payload.resumen?.trim() ? { resumen: payload.resumen.trim() } : {}),
+      ...(payload.proposito?.trim() ? { proposito: payload.proposito.trim() } : {}),
+      ...(payload.etiqueta?.trim() ? { etiqueta: payload.etiqueta.trim() } : {}),
+      ...(payload.imagenUrl?.trim() ? { imagenUrl: payload.imagenUrl.trim() } : {}),
+      estado: creationEstado,
     };
 
     try {
+      // 1. Crear la noticia (devuelve la noticia creada con su `id`)
       const response = await newsApiClient.post<CreateNewsResponse>(
-        '/api/publicaciones',
+        '/api/gestion/publicaciones',
         sanitizedPayload,
       );
-      return response.data;
+      const createdNews = response.data;
+      const noticiaId = createdNews?.id ?? createdNews?.data?.id;
+
+      // 2. Aprobar y activar inmediatamente (solo rol ADMIN / DIRECTORA)
+      if (shouldApproveAndActivate && noticiaId !== undefined && noticiaId !== null) {
+        await newsApiClient.post(
+          `/api/gestion/publicaciones/${encodeURIComponent(String(noticiaId))}/aprobar-y-activar`,
+        );
+      }
+
+      return createdNews;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const message =

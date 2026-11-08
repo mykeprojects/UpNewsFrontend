@@ -22,16 +22,17 @@ export interface NewsPage {
   limit: number;
 }
 
-export type NewsStatus = 'BORRADOR' | 'EN_REVISION' | 'PUBLICADO';
+export type NewsStatus = 'BORRADOR' | 'PENDIENTE_APROBACION' | 'PUBLICADO';
 
 export interface CreateNewsPayload {
   titulo: string;
-  resumen: string;
   cuerpo: string;
-  proposito: string;
-  etiqueta: string;
-  estado: NewsStatus | string;
-  esta_activo: boolean;
+  resumen?: string;
+  proposito?: string;
+  etiqueta?: string;
+  imagenUrl?: string;
+  estado?: NewsStatus | string;
+  esta_activo?: boolean;
 }
 
 export interface CreateNewsResponse {
