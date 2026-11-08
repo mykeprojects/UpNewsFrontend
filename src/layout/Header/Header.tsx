@@ -30,9 +30,6 @@ export function Header({ page, onNavigate, user, onLogout }: HeaderProps) {
           <button className={page === 'noticia' ? 'active' : ''} onClick={() => go('noticia')}>
             Noticias
           </button>
-          <button className={page === 'agenda' ? 'active' : ''} onClick={() => go('agenda')}>
-            Agenda
-          </button>
           <button className={page === 'proyectos' ? 'active' : ''} onClick={() => go('proyectos')}>
             Proyectos
           </button>
@@ -44,6 +41,8 @@ export function Header({ page, onNavigate, user, onLogout }: HeaderProps) {
               Crear noticia
             </button>
           )}
+        </nav>
+        <div className="header-actions">
           <button
             className="nav-donate"
             onClick={() => {
@@ -52,12 +51,6 @@ export function Header({ page, onNavigate, user, onLogout }: HeaderProps) {
             }}
           >
             <Icon name="heart" size={14} /> Donar
-          </button>
-        </nav>
-        <div className="header-actions">
-          <button className="search-button" aria-label="Buscar noticias">
-            <Icon name="search" size={16} />
-            <span>Buscar noticias</span>
           </button>
           {user ? (
             <>
@@ -82,17 +75,7 @@ export function Header({ page, onNavigate, user, onLogout }: HeaderProps) {
                 </button>
               )}
             </>
-          ) : (
-            <button
-              className="admin-access"
-              aria-label="Acceso administrativo"
-              title="Acceso administrativo"
-              onClick={() => go('login')}
-            >
-              <Icon name="lock" size={14} />
-              <span>Acceso</span>
-            </button>
-          )}
+          ) : null}
           <button className="menu-button" onClick={() => setOpen(!open)} aria-label={open ? 'Cerrar menú' : 'Abrir menú'}>
             <Icon name={open ? 'close' : 'menu'} />
           </button>

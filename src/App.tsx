@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Header } from '@/layout/Header';
 import { Home } from '@/pages/Home';
 import { Article } from '@/pages/Article';
-import { Agenda } from '@/pages/Agenda';
 import { Projects } from '@/pages/Projects';
 import { About } from '@/pages/About';
 import { Publish } from '@/pages/Publish';
@@ -12,24 +12,40 @@ import type { AuthUser, Page } from '@/models';
 import { authService } from '@/services';
 
 /** Páginas públicas que llevan el pie de página (Home lo incluye por su cuenta). */
-const PAGINAS_CON_FOOTER: Page[] = ['noticia', 'agenda', 'proyectos', 'nosotros'];
+const PAGINAS_CON_FOOTER: Page[] = ['noticia', 'proyectos', 'nosotros'];
 
-export default function App() {
-  const [page, setPage] = useState<Page>('inicio');
-  const [newsId, setNewsId] = useState<string | null>(null);
+const RUTA_POR_PAGINA: Record<Page, string> = {
+  inicio: '/',
+  noticia: '/noticia',
+  proyectos: '/proyectos',
+  nosotros: '/nosotros',
+  publicar: '/publicar',
+  login: '/login',
+};
+
+function paginaDesdeRuta(pathname: string): Page {
+  if (pathname === '/') return 'inicio';
+  if (pathname === '/noticia' || pathname.startsWith('/noticia/')) return 'noticia';
+  if (pathname === '/proyectos') return 'proyectos';
+  if (pathname === '/nosotros') return 'nosotros';
+  if (pathname === '/publicar') return 'publicar';
+  if (pathname === '/login') return 'login';
+  return 'inicio';
+}
+
+function ArticleRoute({ onOpenNews }: { onOpenNews: (id: string) => void }) {
+  const { newsId } = useParams<{ newsId: string }>();
+  return <Article newsId={newsId ?? null} onOpenNews={onOpenNews} />;
+}
+
+function AppRoutes() {
+  const location = useLocation();
+  const navigateRouter = useNavigate();
+  const page = paginaDesdeRuta(location.pathname);
   const [authUser, setAuthUser] = useState<AuthUser | null>(() => authService.getCurrentSession().user);
 
-  const navigate = (next: Page) => {
-    if (next === 'noticia') setNewsId(null); // "Noticias" en el menú abre la más reciente
-    setPage(next);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const openNews = (id: string) => {
-    setNewsId(id);
-    setPage('noticia');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const navigate = useCallback((next: Page) => navigateRouter(RUTA_POR_PAGINA[next]), [navigateRouter]);
+  const openNews = useCallback((id: string) => navigateRouter(`/noticia/${encodeURIComponent(id)}`), [navigateRouter]);
 
   useEffect(() => {
     const { token } = authService.getCurrentSession();
@@ -39,12 +55,16 @@ export default function App() {
 
     const handleUnauthorized = () => {
       setAuthUser(null);
-      setPage('login');
+      navigate('login');
     };
 
     window.addEventListener('upnews:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('upnews:unauthorized', handleUnauthorized);
-  }, []);
+  }, [navigate]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [location.pathname]);
 
   const handleLoginSuccess = (user: AuthUser) => {
     setAuthUser(user);
@@ -60,19 +80,34 @@ export default function App() {
   return (
     <div className="app">
       <Header page={page} onNavigate={navigate} user={authUser} onLogout={handleLogout} />
-      {page === 'inicio' && <Home onNavigate={navigate} onOpenNews={openNews} />}
-      {page === 'noticia' && <Article newsId={newsId} onOpenNews={openNews} />}
-      {page === 'agenda' && <Agenda />}
-      {page === 'proyectos' && <Projects />}
-      {page === 'nosotros' && <About />}
+      <Routes>
+        <Route path="/" element={<Home onNavigate={navigate} onOpenNews={openNews} />} />
+        <Route path="/noticia" element={<Article newsId={null} onOpenNews={openNews} />} />
+        <Route path="/noticia/:newsId" element={<ArticleRoute onOpenNews={openNews} />} />
+        <Route path="/proyectos" element={<Projects />} />
+        <Route path="/nosotros" element={<About />} />
+        <Route
+          path="/publicar"
+          element={
+            authUser ? (
+              <Publish user={authUser} onLogout={handleLogout} />
+            ) : (
+              <LoginPage onBack={() => navigate('inicio')} onLoginSuccess={handleLoginSuccess} />
+            )
+          }
+        />
+        <Route path="/login" element={<LoginPage onBack={() => navigate('inicio')} onLoginSuccess={handleLoginSuccess} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       {PAGINAS_CON_FOOTER.includes(page) && <Footer onNavigate={navigate} />}
-      {page === 'publicar' &&
-        (authUser ? (
-          <Publish user={authUser} onLogout={handleLogout} />
-        ) : (
-          <LoginPage onBack={() => navigate('inicio')} onLoginSuccess={handleLoginSuccess} />
-        ))}
-      {page === 'login' && <LoginPage onBack={() => navigate('inicio')} onLoginSuccess={handleLoginSuccess} />}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }

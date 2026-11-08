@@ -17,8 +17,14 @@ function enlaceDe(contacto: ContactInfo): string | null {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(valor)}`;
 }
 
+function esTelegram(contacto: ContactInfo): boolean {
+  if (/telegram/i.test(contacto.nombre)) return true;
+  return /^(?:https?:\/\/)?(?:www\.)?(?:t\.me|telegram\.(?:me|org|dog))(?:[/:?#]|$)/i.test(contacto.informacion.trim());
+}
+
 export function Footer({ onNavigate }: FooterProps) {
   const { data: contactos } = useContactInfo();
+  const contactosVisibles = contactos?.filter((contacto) => !esTelegram(contacto));
 
   return (
     <footer>
@@ -35,13 +41,12 @@ export function Footer({ onNavigate }: FooterProps) {
         </div>
         <div>
           <strong>Participa</strong>
-          <button onClick={() => onNavigate('agenda')}>Agenda</button>
           <button onClick={() => onNavigate('publicar')}>Acceso fundación</button>
         </div>
-        {contactos && contactos.length > 0 && (
+        {contactosVisibles && contactosVisibles.length > 0 && (
           <div className="footer-contact">
             <strong>Contacto</strong>
-            {contactos.map((contacto) => {
+            {contactosVisibles.map((contacto) => {
               const href = enlaceDe(contacto);
               const texto = `${contacto.nombre}: ${contacto.informacion}`;
               return href ? (
