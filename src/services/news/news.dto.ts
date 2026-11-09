@@ -9,6 +9,7 @@ export interface PublicacionDto {
   cuerpo: string;
   etiqueta: string | null;
   imagenUrl: string | null;
+  tipoEvidencia?: 'IMAGEN' | 'VIDEO' | null;
   publicadaEn: string | null;
 }
 

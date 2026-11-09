@@ -1,5 +1,6 @@
 export type NewsArt = 'screen' | 'bread' | 'heart';
 export type NewsTone = 'orange' | 'cream' | 'green';
+export type EvidenceType = 'IMAGEN' | 'VIDEO';
 
 /** Noticia tal como la usan los componentes públicos (ya traducida desde el backend). */
 export interface News {
@@ -8,8 +9,9 @@ export interface News {
   title: string;
   excerpt: string;
   body: string;
-  /** Foto real subida a Cloudinary; si no hay, se usa la ilustración (`art`). */
+  /** URL de la imagen o video anexado; si no hay, se usa la ilustración (`art`). */
   imageUrl: string | null;
+  mediaType: EvidenceType | null;
   /** Fecha corta para mostrar, ej: "10 oct" */
   date: string;
   publishedAt: string | null;
@@ -40,6 +42,7 @@ export interface CreateNewsPayload {
   /** Solo ADMINISTRADOR: activarla para que se vea en la web apenas se apruebe. */
   esta_activo: boolean;
   imagenUrl?: string | null;
+  videoUrl?: string | null;
 }
 
 /** Estados reales de una publicación en el backend. */
@@ -53,6 +56,7 @@ export interface ManagedNews {
   cuerpo: string;
   etiqueta: string | null;
   imagenUrl: string | null;
+  tipoEvidencia: EvidenceType | null;
   publicadaEn: string | null;
   estado: BackendNewsStatus;
   estaActivo: boolean;

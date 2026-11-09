@@ -4,6 +4,7 @@ import { Icon } from '@/common/atoms/Icon';
 import { DrumArt } from '@/components/illustrations/DrumArt';
 import type { AuthUser, ManagedNews, Page } from '@/models';
 import { fueCancelada, newsGestionService } from '@/services';
+import { YouTubeVideo } from '@/common/molecules/YouTubeVideo/YouTubeVideo';
 
 export interface RequestsPageProps {
   user?: AuthUser | null;
@@ -166,7 +167,9 @@ export function Requests({ user, onNavigate, onEditRequest, onLogout }: Requests
               <article key={req.id} className="editor-card request-card">
                 <div className="request-card-top">
                   <div className="request-card-media">
-                    {req.imagenUrl ? (
+                    {req.tipoEvidencia === 'VIDEO' && req.imagenUrl ? (
+                      <YouTubeVideo url={req.imagenUrl} title={req.titulo} />
+                    ) : req.imagenUrl ? (
                       <img className="photo-preview" src={req.imagenUrl} alt={req.titulo} />
                     ) : (
                       <DrumArt compact />

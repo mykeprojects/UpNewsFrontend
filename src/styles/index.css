@@ -79,6 +79,9 @@ footer .brand img { width: 104px; height: 42px; }
 .news-card:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(29,55,52,.1); }
 .news-art { height: 175px; overflow: hidden; }
 .news-art .illustration { width: 100%; height: 100%; object-fit: cover; }
+.youtube-video { width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #111; }
+.youtube-video iframe { width: 100%; height: 100%; border: 0; display: block; }
+.news-art .youtube-video { height: 100%; aspect-ratio: auto; }
 .news-card-body { padding: 18px; }
 .news-card-body > span { color: var(--orange-dark); text-transform: uppercase; font-size: 12px; font-weight: 900; letter-spacing: .07em; }
 .news-card h3 { margin: 8px 0 6px; font-size: 20px; line-height: 1.25; font-weight: 900; }
@@ -191,6 +194,9 @@ footer { background: var(--green-dark); color: white; }
 .photo-field .illustration { border-radius: 7px; }
 .photo-field strong { font-size: 15px; }
 .photo-field p { color: var(--muted); font-size: 13px; margin: 4px 0 8px; }
+.youtube-url-field { margin-top: 12px; }
+.youtube-url-field input { width: 100%; margin-top: 6px; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; color: var(--ink); }
+.photo-field .youtube-video { grid-column: 1 / -1; }
 .warning { margin-top: 13px; border-radius: 8px; background: #fff1d8; color: #8c5d10; padding: 11px 13px; font-size: 13px; }
 .publisher-side { display: flex; flex-direction: column; gap: 15px; }
 .publisher-side h2 { margin: 0 0 12px; font-size: 18px; }
@@ -286,6 +292,7 @@ footer { background: var(--green-dark); color: white; }
 /* Fotos reales de noticias (Cloudinary) */
 .news-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
 .article-photo { width: 100%; max-height: 460px; object-fit: cover; border-radius: 12px; margin: 18px 0; display: block; }
+.article-video { margin: 18px 0; border-radius: 12px; }
 .photo-preview { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 7px; display: block; }
 .photo-upload { cursor: pointer; display: inline-flex; margin-right: 6px; }
 
@@ -347,6 +354,8 @@ footer { background: var(--green-dark); color: white; }
   height: 170px;
   object-fit: cover;
 }
+.management-card-media .youtube-video,
+.request-card-media .youtube-video { height: 100%; aspect-ratio: auto; }
 .management-card-media .status {
   position: absolute;
   top: 10px;

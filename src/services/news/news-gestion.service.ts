@@ -65,6 +65,9 @@ export const newsGestionService = {
 
   async createNews(payload: CreateNewsPayload, userRole: UserRole): Promise<ManagedNews> {
     const esAdmin = userRole === 'ADMINISTRADOR';
+    if (payload.imagenUrl && payload.videoUrl?.trim()) {
+      throw new Error('Adjunta una imagen o un video de YouTube, no ambos.');
+    }
     // Regla de UX (el backend la vuelve a validar): un tallerista nunca publica, solo envía a revisión.
     const estadoFormulario = !esAdmin && payload.estado === 'PUBLICADO' ? 'EN_REVISION' : payload.estado;
 
@@ -75,7 +78,7 @@ export const newsGestionService = {
       proposito: opcional(payload.proposito),
       etiqueta: opcional(payload.etiqueta),
       estado: estadoFormulario === 'EN_REVISION' ? 'PENDIENTE_APROBACION' : 'BORRADOR',
-      imagenUrl: payload.imagenUrl || undefined,
+      imagenUrl: payload.videoUrl?.trim() || payload.imagenUrl || undefined,
     };
 
     try {
@@ -100,6 +103,9 @@ export const newsGestionService = {
    */
   async updateNews(id: string, payload: CreateNewsPayload, userRole: UserRole): Promise<ManagedNews> {
     const esAdmin = userRole === 'ADMINISTRADOR';
+    if (payload.imagenUrl && payload.videoUrl?.trim()) {
+      throw new Error('Adjunta una imagen o un video de YouTube, no ambos.');
+    }
     const estadoFormulario = !esAdmin && payload.estado === 'PUBLICADO' ? 'EN_REVISION' : payload.estado;
 
     const cuerpoPatch = {
@@ -108,7 +114,7 @@ export const newsGestionService = {
       resumen: opcional(payload.resumen),
       proposito: opcional(payload.proposito),
       etiqueta: opcional(payload.etiqueta),
-      imagenUrl: payload.imagenUrl || undefined,
+      imagenUrl: payload.videoUrl?.trim() || payload.imagenUrl,
     };
 
     try {

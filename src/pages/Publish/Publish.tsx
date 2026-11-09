@@ -4,6 +4,8 @@ import { DrumArt } from '@/components/illustrations/DrumArt';
 import type { AuthUser, CreateNewsPayload, NewsStatus, Page } from '@/models';
 import { fueCancelada, newsGestionService, TIPOS_IMAGEN } from '@/services';
 import { getAuthTokenFromCookie } from '@/utils/cookies.util';
+import { getYouTubeVideoId } from '@/utils/youtube.util';
+import { YouTubeVideo } from '@/common/molecules/YouTubeVideo/YouTubeVideo';
 
 const DEFAULT_TAGS = ['Historias', 'Talleres', 'Eventos', 'La Fundación'] as const;
 
@@ -26,6 +28,7 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
   const [estado, setEstado] = useState<NewsStatus>(isAdmin ? 'PUBLICADO' : 'EN_REVISION');
   const [estaActivo, setEstaActivo] = useState<boolean>(isAdmin);
   const [imagenUrl, setImagenUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState('');
   const [subiendoImagen, setSubiendoImagen] = useState(false);
   const [loadingDraft, setLoadingDraft] = useState(false);
 
@@ -46,6 +49,7 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
       setEstado(isAdmin ? 'PUBLICADO' : 'EN_REVISION');
       setEstaActivo(isAdmin);
       setImagenUrl(null);
+      setVideoUrl('');
       return;
     }
 
@@ -61,7 +65,9 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
         setCuerpo(item.cuerpo ?? '');
         setProposito(item.proposito ?? '');
         setEtiqueta(item.etiqueta || DEFAULT_TAGS[0]);
-        setImagenUrl(item.imagenUrl ?? null);
+        const esVideo = item.tipoEvidencia === 'VIDEO';
+        setImagenUrl(!esVideo ? item.imagenUrl ?? null : null);
+        setVideoUrl(esVideo ? item.imagenUrl ?? '' : '');
         if (item.estado === 'BORRADOR') {
           setEstado('BORRADOR');
         } else if (item.estado === 'PENDIENTE_APROBACION') {
@@ -95,6 +101,7 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
       estado: !isAdmin && finalStatus === 'PUBLICADO' ? 'EN_REVISION' : finalStatus,
       esta_activo: isAdmin ? estaActivo : false,
       imagenUrl,
+      videoUrl: videoUrl.trim() || null,
     };
   };
 
@@ -118,6 +125,7 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
     setCuerpo('');
     setProposito('');
     setImagenUrl(null);
+    setVideoUrl('');
     setEstaActivo(isAdmin);
   };
 
@@ -129,6 +137,7 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
     setSubiendoImagen(true);
     try {
       setImagenUrl(await newsGestionService.uploadImage(archivo));
+      setVideoUrl('');
     } catch (error) {
       setFeedback({ type: 'error', message: error instanceof Error ? error.message : 'No se pudo subir la imagen.' });
     } finally {
@@ -145,6 +154,13 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
       setFeedback({
         type: 'error',
         message: 'Por favor completa los campos obligatorios: título y cuerpo de la noticia.',
+      });
+      return;
+    }
+    if (payload.videoUrl && !getYouTubeVideoId(payload.videoUrl)) {
+      setFeedback({
+        type: 'error',
+        message: 'Ingresa un enlace válido de un video de YouTube.',
       });
       return;
     }
@@ -332,24 +348,51 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
             </label>
 
             <div className="photo-field">
-              {imagenUrl ? <img className="photo-preview" src={imagenUrl} alt="Portada de la noticia" /> : <DrumArt compact />}
+              {videoUrl ? (
+                <YouTubeVideo url={videoUrl} title={`Vista previa: ${titulo || 'video de YouTube'}`} />
+              ) : imagenUrl ? (
+                <img className="photo-preview" src={imagenUrl} alt="Portada de la noticia" />
+              ) : (
+                <DrumArt compact />
+              )}
               <div>
-                <strong>Foto de portada (opcional)</strong>
-                <p>JPG, PNG o WebP de hasta 10 MB. Sin fotos de banco; usa material propio y autorizado.</p>
+                <strong>Imagen o video de YouTube (opcional)</strong>
+                <p>Adjunta una imagen JPG, PNG o WebP de hasta 10 MB, o pega un enlace de YouTube. Solo puedes usar uno.</p>
                 <label className="pill photo-upload">
                   {subiendoImagen ? 'Subiendo...' : imagenUrl ? 'Cambiar foto' : 'Subir foto'}
-                  <input type="file" accept={TIPOS_IMAGEN.join(',')} onChange={handleImagen} disabled={subiendoImagen} hidden />
+                  <input type="file" accept={TIPOS_IMAGEN.join(',')} onChange={handleImagen} disabled={subiendoImagen || Boolean(videoUrl)} hidden />
                 </label>
                 {imagenUrl && (
                   <button type="button" className="pill" onClick={() => setImagenUrl(null)}>
                     Quitar foto
                   </button>
                 )}
+                <label className="youtube-url-field">
+                  Enlace del video de YouTube
+                  <input
+                    type="url"
+                    value={videoUrl}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setVideoUrl(value);
+                      if (value.trim()) setImagenUrl(null);
+                    }}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    disabled={Boolean(imagenUrl) || subiendoImagen}
+                  />
+                </label>
+                {videoUrl && (
+                  <button type="button" className="pill" onClick={() => setVideoUrl('')}>
+                    Quitar video
+                  </button>
+                )}
               </div>
             </div>
-            <div className="warning">
+            {imagenUrl && (
+              <div className="warning">
               Antes de publicar, confirma la autorización de uso de imagen de todas las personas que aparezcan.
-            </div>
+              </div>
+            )}
 
             <div className="form-submit-row">
               <button
@@ -400,7 +443,13 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
 
             <div className="editor-card preview">
               <h2>Vista previa de la tarjeta</h2>
-              {imagenUrl ? <img className="photo-preview" src={imagenUrl} alt="" /> : <DrumArt compact />}
+              {videoUrl ? (
+                <YouTubeVideo url={videoUrl} title={`Vista previa: ${titulo || 'video de YouTube'}`} />
+              ) : imagenUrl ? (
+                <img className="photo-preview" src={imagenUrl} alt="" />
+              ) : (
+                <DrumArt compact />
+              )}
               <span className="preview-tag">{etiqueta || 'Etiqueta'}</span>
               <strong>{titulo || 'Título de la noticia'}</strong>
               <p>{resumen || 'El resumen de la noticia aparecerá aquí a medida que escribas.'}</p>

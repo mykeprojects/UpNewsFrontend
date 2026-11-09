@@ -4,6 +4,7 @@ import { Icon } from '@/common/atoms/Icon';
 import { DrumArt } from '@/components/illustrations/DrumArt';
 import type { AuthUser, ManagedNews, Page } from '@/models';
 import { fueCancelada, newsGestionService } from '@/services';
+import { YouTubeVideo } from '@/common/molecules/YouTubeVideo/YouTubeVideo';
 
 export interface DraftsPageProps {
   user?: AuthUser | null;
@@ -169,7 +170,9 @@ export function Drafts({ user, onNavigate, onEditDraft, onLogout }: DraftsPagePr
             return (
               <article key={draft.id} className="editor-card management-card">
                 <div className="management-card-media">
-                  {draft.imagenUrl ? (
+                  {draft.tipoEvidencia === 'VIDEO' && draft.imagenUrl ? (
+                    <YouTubeVideo url={draft.imagenUrl} title={draft.titulo} />
+                  ) : draft.imagenUrl ? (
                     <img className="photo-preview" src={draft.imagenUrl} alt={draft.titulo} />
                   ) : (
                     <DrumArt compact />

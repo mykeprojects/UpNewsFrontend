@@ -1,9 +1,10 @@
 import type { News, NewsArt, NewsPage, NewsTone } from '@/models';
 import type { PaginaDto, PublicacionDto } from './news.dto';
+import { getYouTubeVideoId } from '@/utils/youtube.util';
 
 /**
  * Traduce la respuesta del backend (español, campos de API) al modelo que usan los componentes.
- * Si la noticia tiene foto se muestra; si no, se elige una ilustración y un color a partir de la etiqueta.
+ * Si la noticia tiene evidencia se muestra; si no, se elige una ilustración según su etiqueta.
  */
 const VISUAL_POR_CATEGORIA: Record<string, { art: NewsArt; tone: NewsTone }> = {
   talleres: { art: 'screen', tone: 'orange' },
@@ -43,6 +44,9 @@ export function toNews(dto: PublicacionDto): News {
     excerpt: extracto(dto),
     body: dto.cuerpo,
     imageUrl: dto.imagenUrl ?? null,
+    mediaType:
+      dto.tipoEvidencia ??
+      (dto.imagenUrl && getYouTubeVideoId(dto.imagenUrl) ? 'VIDEO' : dto.imagenUrl ? 'IMAGEN' : null),
     date: fechaCorta(dto.publicadaEn),
     publishedAt: dto.publicadaEn,
     ...visualPara(category),

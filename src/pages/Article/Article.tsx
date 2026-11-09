@@ -3,6 +3,7 @@ import { StoryArt } from '@/components/illustrations/StoryArt';
 import { MiniStory } from '@/common/molecules/MiniStory';
 import { useNewsDetail, useNewsList } from '@/hooks';
 import type { AuthUser, News } from '@/models';
+import { YouTubeVideo } from '@/common/molecules/YouTubeVideo/YouTubeVideo';
 
 export interface ArticleProps {
   /** Noticia a mostrar; si es null se muestra la más reciente. */
@@ -21,7 +22,9 @@ export function ArticleContent({ item }: { item: News }) {
       </span>
       <h1>{item.title}</h1>
       {item.excerpt !== item.body && <p className="lead">{item.excerpt}</p>}
-      {item.imageUrl ? (
+      {item.mediaType === 'VIDEO' && item.imageUrl ? (
+        <YouTubeVideo url={item.imageUrl} title={item.title} className="article-video" />
+      ) : item.imageUrl ? (
         <img className="article-photo" src={item.imageUrl} alt={item.title} />
       ) : item.art === 'screen' ? (
         <DrumArt />

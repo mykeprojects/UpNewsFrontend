@@ -1,5 +1,6 @@
 import { StoryArt } from '@/components/illustrations/StoryArt';
 import { Icon } from '@/common/atoms/Icon';
+import { YouTubeVideo } from '@/common/molecules/YouTubeVideo/YouTubeVideo';
 import type { News } from '@/models';
 
 export interface NewsCardProps {
@@ -11,7 +12,9 @@ export function NewsCard({ item, onOpen }: NewsCardProps) {
   return (
     <article className="news-card" onClick={() => onOpen(item.id)}>
       <div className={`news-art ${item.tone}`}>
-        {item.imageUrl ? (
+        {item.mediaType === 'VIDEO' && item.imageUrl ? (
+          <YouTubeVideo url={item.imageUrl} title={item.title} />
+        ) : item.imageUrl ? (
           <img className="news-photo" src={item.imageUrl} alt="" loading="lazy" />
         ) : (
           <StoryArt type={item.art} />
