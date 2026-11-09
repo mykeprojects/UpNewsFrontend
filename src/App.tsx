@@ -6,6 +6,8 @@ import { Article } from '@/pages/Article';
 import { Projects } from '@/pages/Projects';
 import { About } from '@/pages/About';
 import { Publish } from '@/pages/Publish';
+import { Drafts } from '@/pages/Drafts';
+import { Requests } from '@/pages/Requests';
 import { LoginPage } from '@/pages/Login';
 import { Footer } from '@/layout/Footer';
 import type { AuthUser, Page } from '@/models';
@@ -20,6 +22,8 @@ const RUTA_POR_PAGINA: Record<Page, string> = {
   proyectos: '/proyectos',
   nosotros: '/nosotros',
   publicar: '/publicar',
+  borradores: '/borradores',
+  solicitudes: '/solicitudes',
   login: '/login',
 };
 
@@ -28,7 +32,9 @@ function paginaDesdeRuta(pathname: string): Page {
   if (pathname === '/noticia' || pathname.startsWith('/noticia/')) return 'noticia';
   if (pathname === '/proyectos') return 'proyectos';
   if (pathname === '/nosotros') return 'nosotros';
-  if (pathname === '/publicar') return 'publicar';
+  if (pathname === '/publicar' || pathname.startsWith('/publicar/')) return 'publicar';
+  if (pathname === '/borradores') return 'borradores';
+  if (pathname === '/solicitudes') return 'solicitudes';
   if (pathname === '/login') return 'login';
   return 'inicio';
 }
@@ -36,6 +42,19 @@ function paginaDesdeRuta(pathname: string): Page {
 function ArticleRoute({ onOpenNews }: { onOpenNews: (id: string) => void }) {
   const { newsId } = useParams<{ newsId: string }>();
   return <Article newsId={newsId ?? null} onOpenNews={onOpenNews} />;
+}
+
+function PublishEditRoute({
+  user,
+  onNavigate,
+  onLogout,
+}: {
+  user: AuthUser;
+  onNavigate: (page: Page) => void;
+  onLogout: () => void;
+}) {
+  const { newsId } = useParams<{ newsId: string }>();
+  return <Publish user={user} draftId={newsId ?? null} onNavigate={onNavigate} onLogout={onLogout} />;
 }
 
 function AppRoutes() {
@@ -46,6 +65,7 @@ function AppRoutes() {
 
   const navigate = useCallback((next: Page) => navigateRouter(RUTA_POR_PAGINA[next]), [navigateRouter]);
   const openNews = useCallback((id: string) => navigateRouter(`/noticia/${encodeURIComponent(id)}`), [navigateRouter]);
+  const editDraft = useCallback((id: string) => navigateRouter(`/publicar/${encodeURIComponent(id)}`), [navigateRouter]);
 
   useEffect(() => {
     const { token } = authService.getCurrentSession();
@@ -90,9 +110,51 @@ function AppRoutes() {
           path="/publicar"
           element={
             authUser ? (
-              <Publish user={authUser} onLogout={handleLogout} />
+              <Publish user={authUser} onNavigate={navigate} onLogout={handleLogout} />
             ) : (
               <LoginPage onBack={() => navigate('inicio')} onLoginSuccess={handleLoginSuccess} />
+            )
+          }
+        />
+        <Route
+          path="/publicar/:newsId"
+          element={
+            authUser ? (
+              <PublishEditRoute user={authUser} onNavigate={navigate} onLogout={handleLogout} />
+            ) : (
+              <LoginPage onBack={() => navigate('inicio')} onLoginSuccess={handleLoginSuccess} />
+            )
+          }
+        />
+        <Route
+          path="/borradores"
+          element={
+            authUser ? (
+              <Drafts
+                user={authUser}
+                onNavigate={navigate}
+                onEditDraft={editDraft}
+                onLogout={handleLogout}
+              />
+            ) : (
+              <LoginPage onBack={() => navigate('inicio')} onLoginSuccess={handleLoginSuccess} />
+            )
+          }
+        />
+        <Route
+          path="/solicitudes"
+          element={
+            !authUser ? (
+              <LoginPage onBack={() => navigate('inicio')} onLoginSuccess={handleLoginSuccess} />
+            ) : authUser.rol === 'ADMINISTRADOR' ? (
+              <Requests
+                user={authUser}
+                onNavigate={navigate}
+                onEditRequest={editDraft}
+                onLogout={handleLogout}
+              />
+            ) : (
+              <Navigate to="/publicar" replace />
             )
           }
         />

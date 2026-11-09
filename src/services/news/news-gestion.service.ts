@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { CreateNewsPayload, ManagedNews, UserRole } from '@/models';
+import type { BackendNewsStatus, CreateNewsPayload, ManagedNews, UserRole } from '@/models';
 import { mensajeDeError, newsApiClient } from '../http.client';
 
 /** Parámetros firmados que devuelve POST /api/gestion/upload-signature. */
@@ -33,6 +33,34 @@ function opcional(valor: string): string | undefined {
  *   PUBLICADO + activa   →  crear borrador + POST /:id/aprobar-y-activar  (visible en la web)
  */
 export const newsGestionService = {
+  /**
+   * Obtiene todas las publicaciones gestionables por el usuario autenticado
+   * (GET /gestion/publicaciones devuelve un arreglo directo ManagedNews[])
+   * y filtra en el cliente según el estado requerido ('BORRADOR' o 'PENDIENTE_APROBACION').
+   */
+  async listByStatus(estado: BackendNewsStatus, signal?: AbortSignal): Promise<ManagedNews[]> {
+    try {
+      const { data } = await newsApiClient.get<ManagedNews[]>('/gestion/publicaciones', { signal });
+      const lista = Array.isArray(data) ? data : [];
+      return lista.filter((item) => item.estado === estado);
+    } catch (error) {
+      throw new Error(mensajeDeError(error, 'No se pudieron cargar las publicaciones'));
+    }
+  },
+
+  /** Obtiene una publicación interna (borrador o solicitud) por su ID. */
+  async getById(id: string, signal?: AbortSignal): Promise<ManagedNews> {
+    try {
+      const { data } = await newsApiClient.get<ManagedNews>(
+        `/gestion/publicaciones/${encodeURIComponent(id)}`,
+        { signal },
+      );
+      return data;
+    } catch (error) {
+      throw new Error(mensajeDeError(error, 'No se pudo cargar el borrador'));
+    }
+  },
+
   async createNews(payload: CreateNewsPayload, userRole: UserRole): Promise<ManagedNews> {
     const esAdmin = userRole === 'ADMINISTRADOR';
     // Regla de UX (el backend la vuelve a validar): un tallerista nunca publica, solo envía a revisión.
@@ -59,6 +87,83 @@ export const newsGestionService = {
       return aprobada;
     } catch (error) {
       throw new Error(mensajeDeError(error, 'No se pudo guardar la noticia'));
+    }
+  },
+
+  /**
+   * Actualiza un borrador existente en /publicar/:id:
+   * 1. PATCH /gestion/publicaciones/:id SIN el campo `estado` (schema .omit({ estado: true }).strict()).
+   * 2. Si el estado deseado es EN_REVISION, llama a POST /:id/enviar (sin body).
+   * 3. Si es admin y el estado deseado es PUBLICADO, llama a POST /:id/aprobar-y-activar o POST /:id/aprobar.
+   */
+  async updateNews(id: string, payload: CreateNewsPayload, userRole: UserRole): Promise<ManagedNews> {
+    const esAdmin = userRole === 'ADMINISTRADOR';
+    const estadoFormulario = !esAdmin && payload.estado === 'PUBLICADO' ? 'EN_REVISION' : payload.estado;
+
+    const cuerpoPatch = {
+      titulo: payload.titulo.trim(),
+      cuerpo: payload.cuerpo.trim(),
+      resumen: opcional(payload.resumen),
+      proposito: opcional(payload.proposito),
+      etiqueta: opcional(payload.etiqueta),
+      imagenUrl: payload.imagenUrl || undefined,
+    };
+
+    try {
+      const encodedId = encodeURIComponent(id);
+      const { data: actualizada } = await newsApiClient.patch<ManagedNews>(
+        `/gestion/publicaciones/${encodedId}`,
+        cuerpoPatch,
+      );
+
+      if (estadoFormulario === 'BORRADOR') {
+        return actualizada;
+      }
+
+      if (estadoFormulario === 'EN_REVISION') {
+        const { data: enviada } = await newsApiClient.post<ManagedNews>(
+          `/gestion/publicaciones/${encodedId}/enviar`,
+        );
+        return enviada;
+      }
+
+      const accion = payload.esta_activo ? 'aprobar-y-activar' : 'aprobar';
+      const { data: aprobada } = await newsApiClient.post<ManagedNews>(
+        `/gestion/publicaciones/${encodedId}/${accion}`,
+      );
+      return aprobada;
+    } catch (error) {
+      throw new Error(mensajeDeError(error, 'No se pudo actualizar el borrador'));
+    }
+  },
+
+  /**
+   * Tallerista: solicita la publicación de un borrador existente
+   * pasando de 'BORRADOR' a 'PENDIENTE_APROBACION' vía POST /gestion/publicaciones/:id/enviar (sin body).
+   */
+  async requestPublication(id: string): Promise<ManagedNews> {
+    try {
+      const { data } = await newsApiClient.post<ManagedNews>(
+        `/gestion/publicaciones/${encodeURIComponent(id)}/enviar`,
+      );
+      return data;
+    } catch (error) {
+      throw new Error(mensajeDeError(error, 'No se pudo enviar el borrador a revisión'));
+    }
+  },
+
+  /**
+   * Administrador / Directora: aprueba y activa inmediatamente en la web
+   * vía POST /gestion/publicaciones/:id/aprobar-y-activar.
+   */
+  async approveAndPublish(id: string): Promise<ManagedNews> {
+    try {
+      const { data } = await newsApiClient.post<ManagedNews>(
+        `/gestion/publicaciones/${encodeURIComponent(id)}/aprobar-y-activar`,
+      );
+      return data;
+    } catch (error) {
+      throw new Error(mensajeDeError(error, 'No se pudo aprobar y publicar la noticia'));
     }
   },
 
