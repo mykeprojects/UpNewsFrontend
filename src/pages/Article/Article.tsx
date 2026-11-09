@@ -2,26 +2,66 @@ import { DrumArt } from '@/components/illustrations/DrumArt';
 import { StoryArt } from '@/components/illustrations/StoryArt';
 import { MiniStory } from '@/common/molecules/MiniStory';
 import { useNewsDetail, useNewsList } from '@/hooks';
-import type { News } from '@/models';
+import type { AuthUser, News } from '@/models';
 
 export interface ArticleProps {
   /** Noticia a mostrar; si es null se muestra la más reciente. */
   newsId: string | null;
   onOpenNews: (id: string) => void;
   showSidebar?: boolean;
+  user?: AuthUser | null;
 }
 
-function ArticleSidebar({ item, onOpenNews }: { item: News | null; onOpenNews: (id: string) => void }) {
+export function ArticleContent({ item }: { item: News }) {
+  return (
+    <article className="article">
+      <span className="eyebrow dark">
+        {item.category}
+        {item.date && ` · ${item.date}`}
+      </span>
+      <h1>{item.title}</h1>
+      {item.excerpt !== item.body && <p className="lead">{item.excerpt}</p>}
+      {item.imageUrl ? (
+        <img className="article-photo" src={item.imageUrl} alt={item.title} />
+      ) : item.art === 'screen' ? (
+        <DrumArt />
+      ) : (
+        <StoryArt type={item.art} />
+      )}
+      {item.body
+        .split(/\n{2,}/)
+        .filter(Boolean)
+        .map((paragraph, index) => (
+          <p key={index}>{paragraph}</p>
+        ))}
+      <div className="article-tags">
+        <span>{item.category}</span>
+      </div>
+    </article>
+  );
+}
+
+function ArticleSidebar({
+  item,
+  onOpenNews,
+  user,
+}: {
+  item: News | null;
+  onOpenNews: (id: string) => void;
+  user?: AuthUser | null;
+}) {
   const related = useNewsList({ limit: 4 });
   const others = (related.data?.items ?? []).filter((news) => news.id !== item?.id).slice(0, 3);
 
   return (
     <aside className="article-aside">
-      <div className="aside-card orange-card">
-        <strong>¿Quieres apoyar nuestros talleres?</strong>
-        <p>Tu donación ayuda a mantener espacios de aprendizaje y encuentro.</p>
-        <button className="button light">Donar con Asisco Pay</button>
-      </div>
+      {!user && (
+        <div className="aside-card orange-card">
+          <strong>¿Quieres apoyar nuestros talleres?</strong>
+          <p>Tu donación ayuda a mantener espacios de aprendizaje y encuentro.</p>
+          <button className="button light">Donar con Asisco Pay</button>
+        </div>
+      )}
       {others.length > 0 && (
         <div className="aside-card">
           <strong>También te puede interesar</strong>
@@ -34,43 +74,16 @@ function ArticleSidebar({ item, onOpenNews }: { item: News | null; onOpenNews: (
   );
 }
 
-export function ArticlePage({ newsId, onOpenNews, showSidebar = true }: ArticleProps) {
+export function ArticlePage({ newsId, onOpenNews, showSidebar = true, user }: ArticleProps) {
   const { data: item, loading, error } = useNewsDetail(newsId);
 
   return (
     <main className={`shell article-layout${showSidebar ? '' : ' article-layout-featured'}`}>
-      <article className="article">
-        {error && <p className="news-status error">{error}</p>}
-        {!error && loading && !item && <p className="news-status">Cargando noticia…</p>}
-        {!error && !loading && !item && <p className="news-status">Aún no hay noticias publicadas.</p>}
-        {item && (
-          <>
-            <span className="eyebrow dark">
-              {item.category}
-              {item.date && ` · ${item.date}`}
-            </span>
-            <h1>{item.title}</h1>
-            {item.excerpt !== item.body && <p className="lead">{item.excerpt}</p>}
-            {item.imageUrl ? (
-              <img className="article-photo" src={item.imageUrl} alt={item.title} />
-            ) : item.art === 'screen' ? (
-              <DrumArt />
-            ) : (
-              <StoryArt type={item.art} />
-            )}
-            {item.body
-              .split(/\n{2,}/)
-              .filter(Boolean)
-              .map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
-            <div className="article-tags">
-              <span>{item.category}</span>
-            </div>
-          </>
-        )}
-      </article>
-      {showSidebar && <ArticleSidebar item={item} onOpenNews={onOpenNews} />}
+      {error && <p className="news-status error">{error}</p>}
+      {!error && loading && !item && <p className="news-status">Cargando noticia…</p>}
+      {!error && !loading && !item && <p className="news-status">Aún no hay noticias publicadas.</p>}
+      {item && <ArticleContent item={item} />}
+      {showSidebar && <ArticleSidebar item={item} onOpenNews={onOpenNews} user={user} />}
     </main>
   );
 }

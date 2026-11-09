@@ -42,9 +42,11 @@ export function Drafts({ user, onNavigate, onEditDraft, onLogout }: DraftsPagePr
     setError(null);
     try {
       const data = await newsGestionService.listByStatus('BORRADOR', signal);
+      if (signal?.aborted) return;
       setDrafts(data);
+      setError(null);
     } catch (err) {
-      if (fueCancelada(err)) return;
+      if (signal?.aborted || fueCancelada(err)) return;
       setError(err instanceof Error ? err.message : 'No se pudieron cargar los borradores.');
     } finally {
       if (!signal?.aborted) {

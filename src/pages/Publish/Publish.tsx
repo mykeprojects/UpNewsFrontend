@@ -1,5 +1,4 @@
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
-import { Brand } from '@/components/Brand';
 import { Icon } from '@/common/atoms/Icon';
 import { DrumArt } from '@/components/illustrations/DrumArt';
 import type { AuthUser, CreateNewsPayload, NewsStatus, Page } from '@/models';
@@ -15,7 +14,7 @@ export interface PublishPageProps {
   onLogout?: () => void;
 }
 
-export function PublishPage({ user, draftId = null, onNavigate, onLogout }: PublishPageProps) {
+export function PublishPage({ user, draftId = null, onNavigate }: PublishPageProps) {
   const isAdmin = user?.rol === 'ADMINISTRADOR';
   const currentRole = user?.rol ?? 'TALLERISTA';
 
@@ -184,20 +183,13 @@ export function PublishPage({ user, draftId = null, onNavigate, onLogout }: Publ
 
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const targetStatus =
-      draftId && estado === 'BORRADOR'
-        ? isAdmin
-          ? 'PUBLICADO'
-          : 'EN_REVISION'
-        : undefined;
-    await submitNews(targetStatus);
+    await submitNews();
   };
 
   return (
     <main className="publisher">
       <div className="publisher-head">
         <div>
-          <Brand />
           <h1>
             <Icon name="edit" size={19} /> {draftId ? 'Editar borrador' : 'Crear nueva noticia'}
           </h1>
@@ -235,7 +227,7 @@ export function PublishPage({ user, draftId = null, onNavigate, onLogout }: Publ
               className="button orange"
               onClick={() => onNavigate('solicitudes')}
             >
-              <Icon name="send" size={15} /> Solicitudes de talleristas
+              <Icon name="send" size={15} /> Pendientes
             </button>
           )}
           {draftId && onNavigate && (
@@ -245,34 +237,6 @@ export function PublishPage({ user, draftId = null, onNavigate, onLogout }: Publ
               onClick={() => onNavigate('publicar')}
             >
               Nueva noticia
-            </button>
-          )}
-          <button
-            type="button"
-            className="button secondary"
-            disabled={submitting || subiendoImagen || loadingDraft}
-            onClick={() => {
-              setEstado('BORRADOR');
-              void submitNews('BORRADOR');
-            }}
-          >
-            Guardar borrador
-          </button>
-          <button
-            type="submit"
-            form="create-news-form"
-            className="button primary"
-            disabled={submitting || subiendoImagen || loadingDraft}
-          >
-            {submitting
-              ? 'Enviando...'
-              : isAdmin
-                ? 'Guardar y publicar noticia'
-                : 'Solicitar publicación'}
-          </button>
-          {onLogout && (
-            <button type="button" className="pill" onClick={onLogout}>
-              Cerrar sesión
             </button>
           )}
         </div>
@@ -386,6 +350,16 @@ export function PublishPage({ user, draftId = null, onNavigate, onLogout }: Publ
             <div className="warning">
               Antes de publicar, confirma la autorización de uso de imagen de todas las personas que aparezcan.
             </div>
+
+            <div className="form-submit-row">
+              <button
+                type="submit"
+                className="button primary"
+                disabled={submitting || subiendoImagen || loadingDraft}
+              >
+                {submitting ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
           </section>
 
           <aside className="publisher-side">
@@ -406,9 +380,9 @@ export function PublishPage({ user, draftId = null, onNavigate, onLogout }: Publ
                 </select>
               </label>
 
-              <div className="field-group">
-                <span>Activación y Notificación</span>
-                {isAdmin ? (
+              {isAdmin && (
+                <div className="field-group">
+                  <span>Activación y Notificación</span>
                   <label className="check-row admin-toggle">
                     <input
                       type="checkbox"
@@ -420,18 +394,8 @@ export function PublishPage({ user, draftId = null, onNavigate, onLogout }: Publ
                       Mostrar en la web apenas se apruebe (estado PUBLICADO). Si no la activas, queda aprobada pero oculta.
                     </span>
                   </label>
-                ) : (
-                  <div className="locked-field-notice">
-                    <Icon name="lock" size={14} />
-                    <div>
-                      <strong>Campo exclusivo de Administrador</strong>
-                      <p>
-                        Como Tallerista, puedes crear la noticia y enviarla a revisión. Un Administrador deberá aprobarla y activarla para que se publique y notifique al portal.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             <div className="editor-card preview">

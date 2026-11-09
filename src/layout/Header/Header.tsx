@@ -43,15 +43,17 @@ export function Header({ page, onNavigate, user, onLogout }: HeaderProps) {
           )}
         </nav>
         <div className="header-actions">
-          <button
-            className="nav-donate"
-            onClick={() => {
-              setOpen(false);
-              document.getElementById('donar')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            <Icon name="heart" size={14} /> Donar
-          </button>
+          {!user && (
+            <button
+              className="nav-donate"
+              onClick={() => {
+                setOpen(false);
+                document.getElementById('donar')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <Icon name="heart" size={14} /> Donar
+            </button>
+          )}
           {user ? (
             <>
               <button
@@ -71,7 +73,7 @@ export function Header({ page, onNavigate, user, onLogout }: HeaderProps) {
                   onClick={onLogout}
                 >
                   <Icon name="close" size={14} />
-                  <span>Salir</span>
+                  <span>Cerrar sesión</span>
                 </button>
               )}
             </>

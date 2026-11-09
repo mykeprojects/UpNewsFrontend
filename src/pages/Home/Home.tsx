@@ -4,18 +4,21 @@ import { SectionTitle } from '@/common/molecules/SectionTitle';
 import { NewsCard } from '@/common/molecules/NewsCard';
 import { useNewsCategories, useNewsList } from '@/hooks';
 import { Footer } from '@/layout/Footer';
-import { Article } from '@/pages/Article';
-import type { Page } from '@/models';
+import { ArticleContent } from '@/pages/Article';
+import type { AuthUser, Page } from '@/models';
 
 export interface HomeProps {
   onNavigate: (page: Page) => void;
   onOpenNews: (id: string) => void;
+  user?: AuthUser | null;
 }
 
 const TODAS = 'Todas';
 const NOTICIAS_POR_PAGINA = 3;
+const NOTICIAS_INICIO = 3;
+const INTERVALO_CARRUSEL_MS = 5000;
 
-function masRecientesPrimero<T extends { publishedAt: string | null }>(items: T[]): T[] {
+function masRecientesPrimero<T extends { publishedAt: string | null }>(items: T[], limit = 10): T[] {
   return [...items]
     .sort((a, b) => {
       const fechaA = a.publishedAt ? Date.parse(a.publishedAt) : Number.NaN;
@@ -26,15 +29,21 @@ function masRecientesPrimero<T extends { publishedAt: string | null }>(items: T[
       if (!fechaBValida) return -1;
       return fechaB - fechaA;
     })
-    .slice(0, 10);
+    .slice(0, limit);
 }
 
-export function Home({ onNavigate, onOpenNews }: HomeProps) {
+export function Home({ onNavigate, onOpenNews, user }: HomeProps) {
   const [filter, setFilter] = useState(TODAS);
   const [activeNewsIndex, setActiveNewsIndex] = useState(0);
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const featured = useNewsList({ limit: NOTICIAS_INICIO });
   const list = useNewsList({ limit: 10, category: filter === TODAS ? undefined : filter });
   const categories = useNewsCategories();
 
+  const featuredNews = useMemo(
+    () => masRecientesPrimero(featured.data?.items ?? [], NOTICIAS_INICIO),
+    [featured.data?.items],
+  );
   const carouselItems = useMemo(() => masRecientesPrimero(list.data?.items ?? []), [list.data?.items]);
   const carouselPages = useMemo(() => {
     const pages = [];
@@ -47,9 +56,28 @@ export function Home({ onNavigate, onOpenNews }: HomeProps) {
 
   useEffect(() => setActiveNewsIndex(0), [filter, carouselItems]);
 
+  useEffect(() => {
+    if (carouselPages.length <= 1 || isCarouselPaused) return;
+    const timer = window.setInterval(() => {
+      setActiveNewsIndex((prev) => (prev + 1) % carouselPages.length);
+    }, INTERVALO_CARRUSEL_MS);
+    return () => window.clearInterval(timer);
+  }, [carouselPages.length, isCarouselPaused, activeNewsIndex]);
+
   return (
     <>
-      <Article newsId={null} onOpenNews={onOpenNews} showSidebar={false} />
+      <section className="shell article-layout article-layout-featured featured-articles-list">
+        {featured.error && <p className="news-status error">{featured.error}</p>}
+        {!featured.error && featured.loading && !featured.data && (
+          <p className="news-status">Cargando noticias…</p>
+        )}
+        {!featured.error && !featured.loading && featuredNews.length === 0 && (
+          <p className="news-status">Aún no hay noticias publicadas.</p>
+        )}
+        {featuredNews.map((item) => (
+          <ArticleContent key={item.id} item={item} />
+        ))}
+      </section>
       <main>
         <section className="shell section news-section">
           <SectionTitle title="Últimas noticias" />
@@ -63,7 +91,13 @@ export function Home({ onNavigate, onOpenNews }: HomeProps) {
           {list.error && <p className="news-status error">{list.error}</p>}
           {!list.error && list.loading && !list.data && <p className="news-status">Cargando noticias…</p>}
           {!list.error && list.data?.items.length === 0 && <p className="news-status">Aún no hay noticias en esta categoría.</p>}
-          <div className="news-carousel" role="region" aria-label="Carrusel de últimas noticias">
+          <div
+            className="news-carousel"
+            role="region"
+            aria-label="Carrusel de últimas noticias"
+            onMouseEnter={() => setIsCarouselPaused(true)}
+            onMouseLeave={() => setIsCarouselPaused(false)}
+          >
             <div
               className="news-carousel-track"
               style={{ transform: `translateX(-${activeNewsIndex * 100}%)` }}
@@ -96,18 +130,20 @@ export function Home({ onNavigate, onOpenNews }: HomeProps) {
           </div>
         </section>
 
-        <section className="shell support-grid">
-          <div className="donation-band" id="donar">
-            <div className="round-icon">
-              <Icon name="heart" size={28} />
+        {!user && (
+          <section className="shell support-grid">
+            <div className="donation-band" id="donar">
+              <div className="round-icon">
+                <Icon name="heart" size={28} />
+              </div>
+              <div className="donation-copy">
+                <span>¿Quieres apoyar nuestra labor?</span>
+                <p>Tu aporte abre nuevas oportunidades para nuestra comunidad.</p>
+              </div>
+              <button className="button dark donate-cta">Donar con Asisco Pay</button>
             </div>
-            <div className="donation-copy">
-              <span>¿Quieres apoyar nuestra labor?</span>
-              <p>Tu aporte abre nuevas oportunidades para nuestra comunidad.</p>
-            </div>
-            <button className="button dark donate-cta">Donar con Asisco Pay</button>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
       <Footer onNavigate={onNavigate} />
     </>

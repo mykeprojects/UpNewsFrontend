@@ -476,3 +476,55 @@ footer { background: var(--green-dark); color: white; }
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Botón Guardar al final del formulario de crear noticia y lista de 3 noticias principales en Inicio */
+.form-submit-row {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.featured-articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.featured-articles-list .article + .article {
+  padding-top: 36px;
+  border-top: 2px solid var(--line);
+}
+
+
+/* Botón de ojito para mostrar/ocultar contraseña en Login */
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-card form > label .password-field input {
+  padding-right: 44px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  transition: color .15s ease, background-color .15s ease;
+}
+
+.password-toggle:hover:not(:disabled) {
+  color: var(--green);
+  background: #f0f5f4;
+}

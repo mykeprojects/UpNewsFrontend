@@ -48,11 +48,21 @@ export const newsApiClient: AxiosInstance = attachAuthInterceptors(
   }),
 );
 
+/** true si la petición fue cancelada (el componente cambió o se desmontó). */
+export function fueCancelada(error: unknown): boolean {
+  return (
+    axios.isCancel(error) ||
+    (error instanceof Error &&
+      (error.name === 'AbortError' || error.name === 'CanceledError' || (error as { code?: string }).code === 'ERR_CANCELED'))
+  );
+}
+
 /**
  * Convierte cualquier error en un mensaje para mostrar.
  * El backend de UP News responde `{ error, codigo, campos? }`; el principal usa `mensaje` o `message`.
  */
 export function mensajeDeError(error: unknown, porDefecto: string): string {
+  if (fueCancelada(error)) return porDefecto;
   if (axios.isAxiosError(error)) {
     if (!error.response) return 'No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.';
     const data = error.response.data as { error?: string; mensaje?: string; message?: string; campos?: string[] } | undefined;
@@ -61,9 +71,4 @@ export function mensajeDeError(error: unknown, porDefecto: string): string {
   }
   if (error instanceof Error && error.message) return error.message;
   return porDefecto;
-}
-
-/** true si la petición fue cancelada (el componente cambió o se desmontó). */
-export function fueCancelada(error: unknown): boolean {
-  return axios.isCancel(error) || (error instanceof Error && error.name === 'AbortError');
 }

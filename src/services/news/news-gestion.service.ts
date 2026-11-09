@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { BackendNewsStatus, CreateNewsPayload, ManagedNews, UserRole } from '@/models';
-import { mensajeDeError, newsApiClient } from '../http.client';
+import { fueCancelada, mensajeDeError, newsApiClient } from '../http.client';
 
 /** Parámetros firmados que devuelve POST /api/gestion/upload-signature. */
 interface FirmaSubida {
@@ -44,6 +44,7 @@ export const newsGestionService = {
       const lista = Array.isArray(data) ? data : [];
       return lista.filter((item) => item.estado === estado);
     } catch (error) {
+      if (signal?.aborted || fueCancelada(error)) throw error;
       throw new Error(mensajeDeError(error, 'No se pudieron cargar las publicaciones'));
     }
   },
@@ -57,6 +58,7 @@ export const newsGestionService = {
       );
       return data;
     } catch (error) {
+      if (signal?.aborted || fueCancelada(error)) throw error;
       throw new Error(mensajeDeError(error, 'No se pudo cargar el borrador'));
     }
   },

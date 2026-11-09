@@ -43,9 +43,11 @@ export function Requests({ user, onNavigate, onEditRequest, onLogout }: Requests
     setError(null);
     try {
       const data = await newsGestionService.listByStatus('PENDIENTE_APROBACION', signal);
+      if (signal?.aborted) return;
       setRequests(data);
+      setError(null);
     } catch (err) {
-      if (fueCancelada(err)) return;
+      if (signal?.aborted || fueCancelada(err)) return;
       setError(err instanceof Error ? err.message : 'No se pudieron cargar las solicitudes.');
     } finally {
       if (!signal?.aborted) {

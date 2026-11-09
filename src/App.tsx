@@ -39,9 +39,15 @@ function paginaDesdeRuta(pathname: string): Page {
   return 'inicio';
 }
 
-function ArticleRoute({ onOpenNews }: { onOpenNews: (id: string) => void }) {
+function ArticleRoute({
+  onOpenNews,
+  user,
+}: {
+  onOpenNews: (id: string) => void;
+  user: AuthUser | null;
+}) {
   const { newsId } = useParams<{ newsId: string }>();
-  return <Article newsId={newsId ?? null} onOpenNews={onOpenNews} />;
+  return <Article newsId={newsId ?? null} onOpenNews={onOpenNews} user={user} />;
 }
 
 function PublishEditRoute({
@@ -101,9 +107,9 @@ function AppRoutes() {
     <div className="app">
       <Header page={page} onNavigate={navigate} user={authUser} onLogout={handleLogout} />
       <Routes>
-        <Route path="/" element={<Home onNavigate={navigate} onOpenNews={openNews} />} />
-        <Route path="/noticia" element={<Article newsId={null} onOpenNews={openNews} />} />
-        <Route path="/noticia/:newsId" element={<ArticleRoute onOpenNews={openNews} />} />
+        <Route path="/" element={<Home onNavigate={navigate} onOpenNews={openNews} user={authUser} />} />
+        <Route path="/noticia" element={<Article newsId={null} onOpenNews={openNews} user={authUser} />} />
+        <Route path="/noticia/:newsId" element={<ArticleRoute onOpenNews={openNews} user={authUser} />} />
         <Route path="/proyectos" element={<Projects />} />
         <Route path="/nosotros" element={<About />} />
         <Route

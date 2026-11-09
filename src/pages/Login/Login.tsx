@@ -12,6 +12,7 @@ export interface LoginPageProps {
 export function LoginPage({ onBack, onLoginSuccess }: LoginPageProps) {
   const [correoUsuario, setCorreoUsuario] = useState('');
   const [contrasenaUsuario, setContrasenaUsuario] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -82,16 +83,28 @@ export function LoginPage({ onBack, onLoginSuccess }: LoginPageProps) {
             </label>
             <label>
               Contraseña
-              <input
-                type="password"
-                name="contraseña_usuario"
-                value={contrasenaUsuario}
-                onChange={(e) => setContrasenaUsuario(e.target.value)}
-                placeholder="Tu contraseña"
-                autoComplete="current-password"
-                disabled={loading}
-                required
-              />
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="contraseña_usuario"
+                  value={contrasenaUsuario}
+                  onChange={(e) => setContrasenaUsuario(e.target.value)}
+                  placeholder="Tu contraseña"
+                  autoComplete="current-password"
+                  disabled={loading}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  disabled={loading}
+                >
+                  <Icon name={showPassword ? 'eye-off' : 'eye'} size={18} />
+                </button>
+              </div>
             </label>
             <div className="login-options">
               <label>

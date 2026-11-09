@@ -1,4 +1,4 @@
-﻿import { type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 export type IconName =
   | 'search'
@@ -12,7 +12,9 @@ export type IconName =
   | 'pin'
   | 'check'
   | 'edit'
-  | 'lock';
+  | 'lock'
+  | 'eye'
+  | 'eye-off';
 
 export interface IconProps {
   name: IconName;
@@ -77,6 +79,20 @@ const paths: Record<IconName, ReactNode> = {
     <>
       <rect x="5" y="10" width="14" height="11" rx="2" />
       <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  'eye-off': (
+    <>
+      <path d="M9.9 4.2A10.4 10.4 0 0 1 12 4c6.5 0 10 8 10 8a18.5 18.5 0 0 1-2.2 3.2" />
+      <path d="M14.1 14.1a3 3 0 1 1-4.2-4.2" />
+      <path d="M17.9 17.9A10.9 10.9 0 0 1 12 20c-6.5 0-10-8-10-8a18.5 18.5 0 0 1 5.1-5.9" />
+      <path d="m2 2 20 20" />
     </>
   ),
 };
