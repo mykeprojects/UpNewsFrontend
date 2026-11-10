@@ -7,7 +7,15 @@ import { getAuthTokenFromCookie } from '@/utils/cookies.util';
 import { getYouTubeVideoId } from '@/utils/youtube.util';
 import { YouTubeVideo } from '@/common/molecules/YouTubeVideo/YouTubeVideo';
 
-const DEFAULT_TAGS = ['Historias', 'Talleres', 'Eventos', 'La Fundación'] as const;
+const ETIQUETAS = ['Comunidad', 'Eventos', 'Salud', 'Consejos'] as const;
+const PROPOSITOS = [
+  'Informar a la comunidad',
+  'Educar y compartir conocimiento',
+  'Promover la salud y el bienestar',
+  'Invitar a participar en actividades',
+  'Sensibilizar sobre una causa',
+  'Compartir recursos y conocimiento',
+] as const;
 
 export interface PublishPageProps {
   user?: AuthUser | null;
@@ -24,7 +32,7 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
   const [resumen, setResumen] = useState('');
   const [cuerpo, setCuerpo] = useState('');
   const [proposito, setProposito] = useState('');
-  const [etiqueta, setEtiqueta] = useState<string>(DEFAULT_TAGS[0]);
+  const [etiqueta, setEtiqueta] = useState<string>(ETIQUETAS[0]);
   const [estado, setEstado] = useState<NewsStatus>(isAdmin ? 'PUBLICADO' : 'EN_REVISION');
   const [estaActivo, setEstaActivo] = useState<boolean>(isAdmin);
   const [imagenUrl, setImagenUrl] = useState<string | null>(null);
@@ -45,7 +53,7 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
       setResumen('');
       setCuerpo('');
       setProposito('');
-      setEtiqueta(DEFAULT_TAGS[0]);
+      setEtiqueta(ETIQUETAS[0]);
       setEstado(isAdmin ? 'PUBLICADO' : 'EN_REVISION');
       setEstaActivo(isAdmin);
       setImagenUrl(null);
@@ -63,8 +71,8 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
         setTitulo(item.titulo ?? '');
         setResumen(item.resumen ?? '');
         setCuerpo(item.cuerpo ?? '');
-        setProposito(item.proposito ?? '');
-        setEtiqueta(item.etiqueta || DEFAULT_TAGS[0]);
+        setProposito(PROPOSITOS.find((option) => option === item.proposito) ?? '');
+        setEtiqueta(ETIQUETAS.find((option) => option === item.etiqueta) ?? ETIQUETAS[0]);
         const esVideo = item.tipoEvidencia === 'VIDEO';
         setImagenUrl(!esVideo ? item.imagenUrl ?? null : null);
         setVideoUrl(esVideo ? item.imagenUrl ?? '' : '');
@@ -292,38 +300,36 @@ export function PublishPage({ user, draftId = null, onNavigate }: PublishPagePro
 
             <label>
               Propósito (opcional)
-              <input
-                type="text"
+              <select
+                className="status-select"
                 name="proposito"
                 value={proposito}
-                onChange={(e) => setProposito(e.target.value)}
-                placeholder="Ej: Informar e invitar a la comunidad de familias al cierre de talleres artísticos"
-              />
+                onChange={(event) => setProposito(event.target.value)}
+              >
+                <option value="">Selecciona un propósito</option>
+                {PROPOSITOS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </label>
 
-            <div className="field-group">
-              <span>Etiqueta (opcional)</span>
-              <div className="chip-row">
-                {DEFAULT_TAGS.map((tag) => (
-                  <button
-                    type="button"
-                    className={etiqueta === tag ? 'selected' : ''}
-                    key={tag}
-                    onClick={() => setEtiqueta(tag)}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-              <input
-                type="text"
+            <label>
+              Etiqueta
+              <select
+                className="status-select"
                 name="etiqueta"
-                className="mt-2"
                 value={etiqueta}
-                onChange={(e) => setEtiqueta(e.target.value)}
-                placeholder="Selecciona una etiqueta o escribe una personalizada"
-              />
-            </div>
+                onChange={(event) => setEtiqueta(event.target.value)}
+              >
+                {ETIQUETAS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             <label>
               Resumen (opcional)

@@ -80,7 +80,7 @@ export function Home({ onNavigate, onOpenNews, user }: HomeProps) {
       </section>
       <main>
         <section className="shell section news-section">
-          <SectionTitle title="Últimas noticias" />
+          <SectionTitle title="Últimas noticias" action="Ver todas" onAction={() => onNavigate('noticia')} />
           <div className="filters" aria-label="Filtrar noticias">
             {filters.map((name) => (
               <button className={name === filter ? 'active' : ''} key={name} onClick={() => setFilter(name)}>

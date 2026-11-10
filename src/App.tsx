@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Header } from '@/layout/Header';
 import { Home } from '@/pages/Home';
+import { NewsArchive } from '@/pages/News';
 import { Article } from '@/pages/Article';
 import { Projects } from '@/pages/Projects';
 import { About } from '@/pages/About';
@@ -18,7 +19,7 @@ const PAGINAS_CON_FOOTER: Page[] = ['noticia', 'proyectos', 'nosotros'];
 
 const RUTA_POR_PAGINA: Record<Page, string> = {
   inicio: '/',
-  noticia: '/noticia',
+  noticia: '/noticias',
   proyectos: '/proyectos',
   nosotros: '/nosotros',
   publicar: '/publicar',
@@ -29,6 +30,7 @@ const RUTA_POR_PAGINA: Record<Page, string> = {
 
 function paginaDesdeRuta(pathname: string): Page {
   if (pathname === '/') return 'inicio';
+  if (pathname === '/noticias') return 'noticia';
   if (pathname === '/noticia' || pathname.startsWith('/noticia/')) return 'noticia';
   if (pathname === '/proyectos') return 'proyectos';
   if (pathname === '/nosotros') return 'nosotros';
@@ -108,6 +110,7 @@ function AppRoutes() {
       <Header page={page} onNavigate={navigate} user={authUser} onLogout={handleLogout} />
       <Routes>
         <Route path="/" element={<Home onNavigate={navigate} onOpenNews={openNews} user={authUser} />} />
+        <Route path="/noticias" element={<NewsArchive onOpenNews={openNews} />} />
         <Route path="/noticia" element={<Article newsId={null} onOpenNews={openNews} user={authUser} />} />
         <Route path="/noticia/:newsId" element={<ArticleRoute onOpenNews={openNews} user={authUser} />} />
         <Route path="/proyectos" element={<Projects />} />

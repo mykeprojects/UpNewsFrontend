@@ -1,4 +1,5 @@
 export * from './Home';
+export * from './News';
 export * from './Article';
 export * from './Projects';
 export * from './About';

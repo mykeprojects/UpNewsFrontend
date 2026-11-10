@@ -37,9 +37,6 @@ export function ArticleContent({ item }: { item: News }) {
         .map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
         ))}
-      <div className="article-tags">
-        <span>{item.category}</span>
-      </div>
     </article>
   );
 }

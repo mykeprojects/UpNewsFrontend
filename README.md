@@ -69,10 +69,14 @@ cp .env.example .env
 
 | Pantalla | Endpoint |
 |---|---|
-| Portada, filtros, noticia | `GET /api/publicaciones`, `/etiquetas`, `/:id` (públicos) |
+| Portada | `GET /api/publicaciones` (público, paginado; solo noticias activas) |
+| Histórico `/noticias` | `GET /api/publicaciones/historico` (público, paginado; aprobadas activas o inactivas) |
+| Filtros de etiqueta y detalle | `GET /api/publicaciones/etiquetas`, `/api/publicaciones/:id` (públicos) |
 | Pie de página (contacto) | `GET /api/contacto` (público) |
 | Publicar (con sesión) | `POST /api/gestion/publicaciones`; si la directora publica: `/:id/aprobar` o `/:id/aprobar-y-activar` |
 | Foto de portada | `POST /api/gestion/upload-signature` y subida directa a Cloudinary |
+
+El histórico acepta `pagina`, `limite` (máximo 50), `etiqueta` (`Comunidad`, `Eventos`, `Salud` o `Consejos`, sin distinguir mayúsculas) y `busqueda` (coincidencias en el título). El detalle por id también permite consultar publicaciones aprobadas inactivas.
 
 Las peticiones de gestión llevan `Authorization: Bearer <token>` (lo agrega el interceptor de Axios en `src/services/http.client.ts`).
 

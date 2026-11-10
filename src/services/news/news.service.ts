@@ -23,6 +23,38 @@ export const newsService = {
     ).then(toNewsPage);
   },
 
+  history(
+    params: { page?: number; limit?: number; category?: string; search?: string } = {},
+    signal?: AbortSignal,
+  ): Promise<NewsPage> {
+    return get<PaginaDto<PublicacionDto>>(
+      '/publicaciones/historico',
+      {
+        pagina: params.page,
+        limite: params.limit,
+        etiqueta: params.category,
+        busqueda: params.search,
+      },
+      signal,
+    ).then(toNewsPage);
+  },
+
+  async listAll(signal?: AbortSignal): Promise<News[]> {
+    const limit = 50;
+    const firstPage = await this.list({ page: 1, limit }, signal);
+    const items = [...firstPage.items];
+
+    for (let page = 2; items.length < firstPage.total; page += 1) {
+      const nextPage = await this.list({ page, limit }, signal);
+      if (nextPage.items.length === 0) {
+        throw new Error('No se pudo completar la carga del histórico de noticias.');
+      }
+      items.push(...nextPage.items);
+    }
+
+    return items;
+  },
+
   get(id: string, signal?: AbortSignal): Promise<News> {
     return get<PublicacionDto>(`/publicaciones/${encodeURIComponent(id)}`, {}, signal).then(toNews);
   },

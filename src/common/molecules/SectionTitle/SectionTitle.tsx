@@ -10,7 +10,7 @@ export function SectionTitle({ title, action, onAction }: SectionTitleProps) {
   return (
     <div className="section-title">
       <h2>{title}</h2>
-      {action && (
+      {action && onAction && (
         <button onClick={onAction}>
           {action} <Icon name="arrow" size={15} />
         </button>
