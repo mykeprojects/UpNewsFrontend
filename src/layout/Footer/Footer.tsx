@@ -75,7 +75,7 @@ export function Footer({ onNavigate }: FooterProps) {
                       aria-label={contacto.nombre}
                       title={contacto.nombre}
                     >
-                      <Icon name={iconoSocial} size={22} />
+                      <Icon name={iconoSocial} size={28} />
                     </a>
                   );
                 })}
